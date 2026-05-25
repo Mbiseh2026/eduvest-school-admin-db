@@ -6,6 +6,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { ArrowRight, LogOut, Layers, ShieldCheck, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useWorkspace } from "@/hooks/use-workspace";
+
 
 export const Route = createFileRoute("/workspace")({
   head: () => ({
@@ -21,6 +23,8 @@ function WorkspacePage() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { state } = useOnboarding();
+  const { setWorkspace } = useWorkspace();
+
 
   useEffect(() => {
     if (!user) navigate({ to: "/login" });
