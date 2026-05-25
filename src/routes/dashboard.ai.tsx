@@ -1,13 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Sparkles, MessageCircle, TrendingUp, AlertTriangle, FileBarChart, Wifi } from "lucide-react";
+import { Sparkles, MessageCircle, TrendingUp, AlertTriangle, FileBarChart, Wifi, ShieldCheck } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import { RoleGuard } from "@/components/dashboard/RoleGuard";
+import { useRole } from "@/hooks/use-role";
+import { ROLE_LABELS } from "@/lib/eduvest/roles";
 
 export const Route = createFileRoute("/dashboard/ai")({
   head: () => ({ meta: [{ title: "AI Insights — EduVest" }, { name: "robots", content: "noindex" }] }),
-  component: AiInsightsPage,
+  component: () => (
+    <RoleGuard permission="ai.dashboard">
+      <AiInsightsPage />
+    </RoleGuard>
+  ),
 });
 
 function AiInsightsPage() {
+  const { role } = useRole();
   return (
     <div className="space-y-8">
       <PageHeader
