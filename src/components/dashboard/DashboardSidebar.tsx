@@ -12,25 +12,47 @@ import {
   IdCard,
   Sparkles,
   Settings,
+  Wallet,
   X,
+  type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/components/eduvest/Logo";
 import { cn } from "@/lib/utils";
 
-export const NAV_ITEMS = [
+type NavChild = { to: string; label: string };
+type NavItem = {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+  exact?: boolean;
+  children?: NavChild[];
+};
+
+export const NAV_ITEMS: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/dashboard/attendance", label: "Attendance", icon: CalendarCheck },
   { to: "/dashboard/messages", label: "Messages", icon: MessageSquare },
   { to: "/dashboard/finance", label: "Finance", icon: PiggyBank },
   { to: "/dashboard/students", label: "Students", icon: GraduationCap },
   { to: "/dashboard/parents", label: "Parents", icon: Users },
-  { to: "/dashboard/teachers", label: "Teachers & HR", icon: UserCog },
+  {
+    to: "/dashboard/teachers",
+    label: "Teachers & HR",
+    icon: UserCog,
+    children: [
+      { to: "/dashboard/teachers", label: "Teacher Management" },
+      { to: "/dashboard/payroll", label: "Payroll" },
+    ],
+  },
   { to: "/dashboard/timetable", label: "Timetable", icon: CalendarRange },
   { to: "/dashboard/reports", label: "Reports", icon: FileBarChart },
   { to: "/dashboard/digital-id", label: "Digital ID", icon: IdCard },
   { to: "/dashboard/ai", label: "AI Insights", icon: Sparkles },
   { to: "/dashboard/settings", label: "School Settings", icon: Settings },
-] as const;
+];
+
+// Keep an explicit reference so unused-import linting doesn't strip Wallet.
+export const PAYROLL_ICON = Wallet;
 
 export function DashboardSidebar({
   mobileOpen,
