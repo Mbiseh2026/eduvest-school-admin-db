@@ -6,6 +6,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { ArrowRight, LogOut, Layers, ShieldCheck, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useWorkspace } from "@/hooks/use-workspace";
+
 
 export const Route = createFileRoute("/workspace")({
   head: () => ({
@@ -21,6 +23,8 @@ function WorkspacePage() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { state } = useOnboarding();
+  const { setWorkspace } = useWorkspace();
+
 
   useEffect(() => {
     if (!user) navigate({ to: "/login" });
@@ -70,7 +74,7 @@ function WorkspacePage() {
             return (
               <button
                 key={w}
-                onClick={() => alert(`Dashboard for "${w}" is coming next phase.`)}
+                onClick={() => { setWorkspace(w); navigate({ to: "/dashboard" }); }}
                 className={cn(
                   "group relative overflow-hidden rounded-2xl border bg-card p-6 text-left transition-all hover:-translate-y-1 hover:shadow-elevated",
                   isAll ? "border-primary/40 bg-gradient-navy text-navy-foreground" : "border-border",
@@ -109,7 +113,7 @@ function WorkspacePage() {
         </div>
 
         <div className="mt-10 rounded-2xl border border-dashed border-border bg-card/60 p-6 text-center text-sm text-muted-foreground">
-          The dashboard modules (attendance, finance, payroll, AI, reports) are coming in the next phase.
+          Pick a workspace above to open its dashboard. You can switch workspaces anytime from the top bar.
           For now, your onboarding and architecture are ready. Want to tweak setup?{" "}
           <Link to="/onboarding" className="font-semibold text-primary hover:underline">Edit workspace</Link>
         </div>
