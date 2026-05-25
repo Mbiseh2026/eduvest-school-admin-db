@@ -74,7 +74,7 @@ function WorkspacePage() {
             return (
               <button
                 key={w}
-                onClick={() => alert(`Dashboard for "${w}" is coming next phase.`)}
+                onClick={() => { setWorkspace(w); navigate({ to: "/dashboard" }); }}
                 className={cn(
                   "group relative overflow-hidden rounded-2xl border bg-card p-6 text-left transition-all hover:-translate-y-1 hover:shadow-elevated",
                   isAll ? "border-primary/40 bg-gradient-navy text-navy-foreground" : "border-border",
