@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+Disallow: /onboarding
+Disallow: /workspace
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /verify
