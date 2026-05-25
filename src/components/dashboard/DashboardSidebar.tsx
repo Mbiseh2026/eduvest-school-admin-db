@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
@@ -14,41 +15,56 @@ import {
   Settings,
   Wallet,
   X,
+  ChevronDown,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/components/eduvest/Logo";
 import { cn } from "@/lib/utils";
+import { useRole } from "@/hooks/use-role";
+import type { Permission } from "@/lib/eduvest/roles";
 
-type NavChild = { to: string; label: string };
+type NavChild = { to: string; label: string; permission?: Permission };
 type NavItem = {
   to: string;
   label: string;
   icon: LucideIcon;
   exact?: boolean;
+  permission?: Permission;
   children?: NavChild[];
 };
 
 export const NAV_ITEMS: NavItem[] = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/dashboard/attendance", label: "Attendance", icon: CalendarCheck },
-  { to: "/dashboard/messages", label: "Messages", icon: MessageSquare },
-  { to: "/dashboard/finance", label: "Finance", icon: PiggyBank },
-  { to: "/dashboard/students", label: "Students", icon: GraduationCap },
-  { to: "/dashboard/parents", label: "Parents", icon: Users },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true, permission: "dashboard.view" },
+  { to: "/dashboard/attendance", label: "Attendance", icon: CalendarCheck, permission: "attendance.view" },
+  { to: "/dashboard/messages", label: "Messages", icon: MessageSquare, permission: "messages.view" },
+  {
+    to: "/dashboard/finance",
+    label: "Finance",
+    icon: PiggyBank,
+    permission: "finance.view",
+    children: [
+      { to: "/dashboard/finance", label: "Overview" },
+      { to: "/dashboard/income", label: "Income" },
+      { to: "/dashboard/expenditure", label: "Expenditure" },
+    ],
+  },
+  { to: "/dashboard/students", label: "Students", icon: GraduationCap, permission: "students.view" },
+  { to: "/dashboard/parents", label: "Parents", icon: Users, permission: "parents.view" },
   {
     to: "/dashboard/teachers",
     label: "Teachers & HR",
     icon: UserCog,
+    permission: "teachers.view",
     children: [
       { to: "/dashboard/teachers", label: "Teacher Management" },
-      { to: "/dashboard/payroll", label: "Payroll" },
+      { to: "/dashboard/payroll", label: "Payroll", permission: "payroll.view" },
     ],
   },
-  { to: "/dashboard/timetable", label: "Timetable", icon: CalendarRange },
-  { to: "/dashboard/reports", label: "Reports", icon: FileBarChart },
-  { to: "/dashboard/digital-id", label: "Digital ID", icon: IdCard },
-  { to: "/dashboard/ai", label: "AI Insights", icon: Sparkles },
-  { to: "/dashboard/settings", label: "School Settings", icon: Settings },
+  { to: "/dashboard/timetable", label: "Timetable", icon: CalendarRange, permission: "timetable.view" },
+  { to: "/dashboard/reports", label: "Reports", icon: FileBarChart, permission: "reports.view" },
+  { to: "/dashboard/digital-id", label: "Digital ID", icon: IdCard, permission: "digital-id.view" },
+  { to: "/dashboard/ai", label: "AI Insights", icon: Sparkles, permission: "ai.dashboard" },
+  { to: "/dashboard/settings", label: "School Settings", icon: Settings, permission: "settings.view" },
 ];
 
 // Keep an explicit reference so unused-import linting doesn't strip Wallet.
@@ -62,9 +78,13 @@ export function DashboardSidebar({
   onClose: () => void;
 }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { can } = useRole();
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
   const isActive = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(`${to}/`);
+
+  const visibleItems = NAV_ITEMS.filter((i) => !i.permission || can(i.permission));
 
   return (
     <>
@@ -95,34 +115,56 @@ export function DashboardSidebar({
 
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           <ul className="space-y-1">
-            {NAV_ITEMS.map((item) => {
+            {visibleItems.map((item) => {
               const active = isActive(item.to, item.exact);
               const Icon = item.icon;
-              const groupActive =
-                active || item.children?.some((c) => isActive(c.to)) || false;
+              const childMatches = item.children?.some((c) => isActive(c.to)) || false;
+              const groupActive = active || childMatches;
+              const expanded = openGroups[item.to] ?? groupActive;
+              const visibleChildren = item.children?.filter(
+                (c) => !c.permission || can(c.permission),
+              );
+              const hasChildren = !!visibleChildren?.length;
+
               return (
                 <li key={item.to}>
-                  <Link
-                    to={item.to}
-                    onClick={onClose}
-                    className={cn(
-                      "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-                      groupActive
-                        ? "bg-primary-soft text-primary"
-                        : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-                    )}
-                  >
-                    <Icon
+                  <div className="flex items-center gap-1">
+                    <Link
+                      to={item.to}
+                      onClick={onClose}
                       className={cn(
-                        "h-4 w-4 shrink-0",
-                        groupActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
+                        "group flex flex-1 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                        groupActive
+                          ? "bg-primary-soft text-primary"
+                          : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                       )}
-                    />
-                    {item.label}
-                  </Link>
-                  {item.children && groupActive && (
+                    >
+                      <Icon
+                        className={cn(
+                          "h-4 w-4 shrink-0",
+                          groupActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
+                        )}
+                      />
+                      {item.label}
+                    </Link>
+                    {hasChildren && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenGroups((s) => ({ ...s, [item.to]: !expanded }))
+                        }
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary"
+                        aria-label="Toggle group"
+                      >
+                        <ChevronDown
+                          className={cn("h-4 w-4 transition-transform", expanded ? "rotate-180" : "")}
+                        />
+                      </button>
+                    )}
+                  </div>
+                  {hasChildren && expanded && (
                     <ul className="mt-1 space-y-0.5 border-l border-border pl-4 ml-5">
-                      {item.children.map((child) => {
+                      {visibleChildren!.map((child) => {
                         const childActive = isActive(child.to);
                         return (
                           <li key={child.to}>
