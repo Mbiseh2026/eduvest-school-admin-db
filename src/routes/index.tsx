@@ -1,26 +1,49 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { SiteLayout } from "@/components/eduvest/SiteLayout";
+import { Hero } from "@/components/landing/Hero";
+import { About } from "@/components/landing/About";
+import { Features } from "@/components/landing/Features";
+import { Customers } from "@/components/landing/Customers";
+import { AISection } from "@/components/landing/AISection";
+import { Pricing } from "@/components/landing/Pricing";
+import { Testimonials } from "@/components/landing/Testimonials";
+import { FAQ } from "@/components/landing/FAQ";
+import { CTA } from "@/components/landing/CTA";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "EduVest — School ERP + Financial Intelligence" },
+      {
+        name: "description",
+        content:
+          "Run admissions, attendance, finance, payroll, communication and AI for your school in one workspace.",
+      },
+      { property: "og:title", content: "EduVest — School ERP + Financial Intelligence" },
+      {
+        property: "og:description",
+        content:
+          "Run admissions, attendance, finance, payroll, communication and AI for your school in one workspace.",
+      },
+      { property: "og:url", content: "/" },
+    ],
+    links: [{ rel: "canonical", href: "/" }],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
-
 function Index() {
-  return <PlaceholderIndex />;
+  return (
+    <SiteLayout>
+      <Hero />
+      <About />
+      <Features />
+      <Customers />
+      <AISection />
+      <Pricing />
+      <Testimonials />
+      <FAQ />
+      <CTA />
+    </SiteLayout>
+  );
 }
