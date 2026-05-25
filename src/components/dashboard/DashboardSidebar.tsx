@@ -90,7 +90,7 @@ export function DashboardSidebar({
                   >
                     <Icon
                       className={cn(
-                        "h-4.5 w-4.5 shrink-0",
+                        "h-4 w-4 shrink-0",
                         active ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
                       )}
                     />
