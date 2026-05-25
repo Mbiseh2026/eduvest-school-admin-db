@@ -12,25 +12,47 @@ import {
   IdCard,
   Sparkles,
   Settings,
+  Wallet,
   X,
+  type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/components/eduvest/Logo";
 import { cn } from "@/lib/utils";
 
-export const NAV_ITEMS = [
+type NavChild = { to: string; label: string };
+type NavItem = {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+  exact?: boolean;
+  children?: NavChild[];
+};
+
+export const NAV_ITEMS: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/dashboard/attendance", label: "Attendance", icon: CalendarCheck },
   { to: "/dashboard/messages", label: "Messages", icon: MessageSquare },
   { to: "/dashboard/finance", label: "Finance", icon: PiggyBank },
   { to: "/dashboard/students", label: "Students", icon: GraduationCap },
   { to: "/dashboard/parents", label: "Parents", icon: Users },
-  { to: "/dashboard/teachers", label: "Teachers & HR", icon: UserCog },
+  {
+    to: "/dashboard/teachers",
+    label: "Teachers & HR",
+    icon: UserCog,
+    children: [
+      { to: "/dashboard/teachers", label: "Teacher Management" },
+      { to: "/dashboard/payroll", label: "Payroll" },
+    ],
+  },
   { to: "/dashboard/timetable", label: "Timetable", icon: CalendarRange },
   { to: "/dashboard/reports", label: "Reports", icon: FileBarChart },
   { to: "/dashboard/digital-id", label: "Digital ID", icon: IdCard },
   { to: "/dashboard/ai", label: "AI Insights", icon: Sparkles },
   { to: "/dashboard/settings", label: "School Settings", icon: Settings },
-] as const;
+];
+
+// Keep an explicit reference so unused-import linting doesn't strip Wallet.
+export const PAYROLL_ICON = Wallet;
 
 export function DashboardSidebar({
   mobileOpen,
@@ -74,8 +96,10 @@ export function DashboardSidebar({
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           <ul className="space-y-1">
             {NAV_ITEMS.map((item) => {
-              const active = isActive(item.to, "exact" in item ? item.exact : false);
+              const active = isActive(item.to, item.exact);
               const Icon = item.icon;
+              const groupActive =
+                active || item.children?.some((c) => isActive(c.to)) || false;
               return (
                 <li key={item.to}>
                   <Link
@@ -83,7 +107,7 @@ export function DashboardSidebar({
                     onClick={onClose}
                     className={cn(
                       "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-                      active
+                      groupActive
                         ? "bg-primary-soft text-primary"
                         : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                     )}
@@ -91,16 +115,40 @@ export function DashboardSidebar({
                     <Icon
                       className={cn(
                         "h-4 w-4 shrink-0",
-                        active ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
+                        groupActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
                       )}
                     />
                     {item.label}
                   </Link>
+                  {item.children && groupActive && (
+                    <ul className="mt-1 space-y-0.5 border-l border-border pl-4 ml-5">
+                      {item.children.map((child) => {
+                        const childActive = isActive(child.to);
+                        return (
+                          <li key={child.to}>
+                            <Link
+                              to={child.to}
+                              onClick={onClose}
+                              className={cn(
+                                "flex items-center rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+                                childActive
+                                  ? "bg-primary-soft/60 text-primary"
+                                  : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                              )}
+                            >
+                              {child.label}
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                 </li>
               );
             })}
           </ul>
         </nav>
+
 
         <div className="shrink-0 border-t border-border p-4">
           <div className="rounded-xl bg-gradient-navy p-4 text-navy-foreground">
