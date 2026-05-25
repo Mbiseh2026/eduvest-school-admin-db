@@ -18,10 +18,23 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FeaturesRouteImport } from './routes/features'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AiRouteImport } from './routes/ai'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as DashboardTimetableRouteImport } from './routes/dashboard.timetable'
+import { Route as DashboardTeachersRouteImport } from './routes/dashboard.teachers'
+import { Route as DashboardStudentsRouteImport } from './routes/dashboard.students'
+import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
+import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
+import { Route as DashboardParentsRouteImport } from './routes/dashboard.parents'
+import { Route as DashboardMessagesRouteImport } from './routes/dashboard.messages'
+import { Route as DashboardFinanceRouteImport } from './routes/dashboard.finance'
+import { Route as DashboardDigitalIdRouteImport } from './routes/dashboard.digital-id'
+import { Route as DashboardAttendanceRouteImport } from './routes/dashboard.attendance'
+import { Route as DashboardAiRouteImport } from './routes/dashboard.ai'
 
 const WorkspaceRoute = WorkspaceRouteImport.update({
   id: '/workspace',
@@ -68,6 +81,11 @@ const FeaturesRoute = FeaturesRouteImport.update({
   path: '/features',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
@@ -88,12 +106,73 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardTimetableRoute = DashboardTimetableRouteImport.update({
+  id: '/timetable',
+  path: '/timetable',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardTeachersRoute = DashboardTeachersRouteImport.update({
+  id: '/teachers',
+  path: '/teachers',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardStudentsRoute = DashboardStudentsRouteImport.update({
+  id: '/students',
+  path: '/students',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardReportsRoute = DashboardReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardParentsRoute = DashboardParentsRouteImport.update({
+  id: '/parents',
+  path: '/parents',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardMessagesRoute = DashboardMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardFinanceRoute = DashboardFinanceRouteImport.update({
+  id: '/finance',
+  path: '/finance',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardDigitalIdRoute = DashboardDigitalIdRouteImport.update({
+  id: '/digital-id',
+  path: '/digital-id',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAttendanceRoute = DashboardAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAiRoute = DashboardAiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
+  getParentRoute: () => DashboardRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/ai': typeof AiRoute
   '/contact': typeof ContactRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -103,6 +182,18 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verify': typeof VerifyRoute
   '/workspace': typeof WorkspaceRoute
+  '/dashboard/ai': typeof DashboardAiRoute
+  '/dashboard/attendance': typeof DashboardAttendanceRoute
+  '/dashboard/digital-id': typeof DashboardDigitalIdRoute
+  '/dashboard/finance': typeof DashboardFinanceRoute
+  '/dashboard/messages': typeof DashboardMessagesRoute
+  '/dashboard/parents': typeof DashboardParentsRoute
+  '/dashboard/reports': typeof DashboardReportsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/students': typeof DashboardStudentsRoute
+  '/dashboard/teachers': typeof DashboardTeachersRoute
+  '/dashboard/timetable': typeof DashboardTimetableRoute
+  '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -118,6 +209,18 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verify': typeof VerifyRoute
   '/workspace': typeof WorkspaceRoute
+  '/dashboard/ai': typeof DashboardAiRoute
+  '/dashboard/attendance': typeof DashboardAttendanceRoute
+  '/dashboard/digital-id': typeof DashboardDigitalIdRoute
+  '/dashboard/finance': typeof DashboardFinanceRoute
+  '/dashboard/messages': typeof DashboardMessagesRoute
+  '/dashboard/parents': typeof DashboardParentsRoute
+  '/dashboard/reports': typeof DashboardReportsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/students': typeof DashboardStudentsRoute
+  '/dashboard/teachers': typeof DashboardTeachersRoute
+  '/dashboard/timetable': typeof DashboardTimetableRoute
+  '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +228,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/ai': typeof AiRoute
   '/contact': typeof ContactRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -134,6 +238,18 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verify': typeof VerifyRoute
   '/workspace': typeof WorkspaceRoute
+  '/dashboard/ai': typeof DashboardAiRoute
+  '/dashboard/attendance': typeof DashboardAttendanceRoute
+  '/dashboard/digital-id': typeof DashboardDigitalIdRoute
+  '/dashboard/finance': typeof DashboardFinanceRoute
+  '/dashboard/messages': typeof DashboardMessagesRoute
+  '/dashboard/parents': typeof DashboardParentsRoute
+  '/dashboard/reports': typeof DashboardReportsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/students': typeof DashboardStudentsRoute
+  '/dashboard/teachers': typeof DashboardTeachersRoute
+  '/dashboard/timetable': typeof DashboardTimetableRoute
+  '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -142,6 +258,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/ai'
     | '/contact'
+    | '/dashboard'
     | '/features'
     | '/forgot-password'
     | '/login'
@@ -151,6 +268,18 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/verify'
     | '/workspace'
+    | '/dashboard/ai'
+    | '/dashboard/attendance'
+    | '/dashboard/digital-id'
+    | '/dashboard/finance'
+    | '/dashboard/messages'
+    | '/dashboard/parents'
+    | '/dashboard/reports'
+    | '/dashboard/settings'
+    | '/dashboard/students'
+    | '/dashboard/teachers'
+    | '/dashboard/timetable'
+    | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -166,12 +295,25 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/verify'
     | '/workspace'
+    | '/dashboard/ai'
+    | '/dashboard/attendance'
+    | '/dashboard/digital-id'
+    | '/dashboard/finance'
+    | '/dashboard/messages'
+    | '/dashboard/parents'
+    | '/dashboard/reports'
+    | '/dashboard/settings'
+    | '/dashboard/students'
+    | '/dashboard/teachers'
+    | '/dashboard/timetable'
+    | '/dashboard'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/ai'
     | '/contact'
+    | '/dashboard'
     | '/features'
     | '/forgot-password'
     | '/login'
@@ -181,6 +323,18 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/verify'
     | '/workspace'
+    | '/dashboard/ai'
+    | '/dashboard/attendance'
+    | '/dashboard/digital-id'
+    | '/dashboard/finance'
+    | '/dashboard/messages'
+    | '/dashboard/parents'
+    | '/dashboard/reports'
+    | '/dashboard/settings'
+    | '/dashboard/students'
+    | '/dashboard/teachers'
+    | '/dashboard/timetable'
+    | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -188,6 +342,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AiRoute: typeof AiRoute
   ContactRoute: typeof ContactRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
   FeaturesRoute: typeof FeaturesRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
@@ -264,6 +419,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FeaturesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contact': {
       id: '/contact'
       path: '/contact'
@@ -292,14 +454,133 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/timetable': {
+      id: '/dashboard/timetable'
+      path: '/timetable'
+      fullPath: '/dashboard/timetable'
+      preLoaderRoute: typeof DashboardTimetableRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/teachers': {
+      id: '/dashboard/teachers'
+      path: '/teachers'
+      fullPath: '/dashboard/teachers'
+      preLoaderRoute: typeof DashboardTeachersRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/students': {
+      id: '/dashboard/students'
+      path: '/students'
+      fullPath: '/dashboard/students'
+      preLoaderRoute: typeof DashboardStudentsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/settings': {
+      id: '/dashboard/settings'
+      path: '/settings'
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/reports': {
+      id: '/dashboard/reports'
+      path: '/reports'
+      fullPath: '/dashboard/reports'
+      preLoaderRoute: typeof DashboardReportsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/parents': {
+      id: '/dashboard/parents'
+      path: '/parents'
+      fullPath: '/dashboard/parents'
+      preLoaderRoute: typeof DashboardParentsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/messages': {
+      id: '/dashboard/messages'
+      path: '/messages'
+      fullPath: '/dashboard/messages'
+      preLoaderRoute: typeof DashboardMessagesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/finance': {
+      id: '/dashboard/finance'
+      path: '/finance'
+      fullPath: '/dashboard/finance'
+      preLoaderRoute: typeof DashboardFinanceRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/digital-id': {
+      id: '/dashboard/digital-id'
+      path: '/digital-id'
+      fullPath: '/dashboard/digital-id'
+      preLoaderRoute: typeof DashboardDigitalIdRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/attendance': {
+      id: '/dashboard/attendance'
+      path: '/attendance'
+      fullPath: '/dashboard/attendance'
+      preLoaderRoute: typeof DashboardAttendanceRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/ai': {
+      id: '/dashboard/ai'
+      path: '/ai'
+      fullPath: '/dashboard/ai'
+      preLoaderRoute: typeof DashboardAiRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
+
+interface DashboardRouteChildren {
+  DashboardAiRoute: typeof DashboardAiRoute
+  DashboardAttendanceRoute: typeof DashboardAttendanceRoute
+  DashboardDigitalIdRoute: typeof DashboardDigitalIdRoute
+  DashboardFinanceRoute: typeof DashboardFinanceRoute
+  DashboardMessagesRoute: typeof DashboardMessagesRoute
+  DashboardParentsRoute: typeof DashboardParentsRoute
+  DashboardReportsRoute: typeof DashboardReportsRoute
+  DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardStudentsRoute: typeof DashboardStudentsRoute
+  DashboardTeachersRoute: typeof DashboardTeachersRoute
+  DashboardTimetableRoute: typeof DashboardTimetableRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAiRoute: DashboardAiRoute,
+  DashboardAttendanceRoute: DashboardAttendanceRoute,
+  DashboardDigitalIdRoute: DashboardDigitalIdRoute,
+  DashboardFinanceRoute: DashboardFinanceRoute,
+  DashboardMessagesRoute: DashboardMessagesRoute,
+  DashboardParentsRoute: DashboardParentsRoute,
+  DashboardReportsRoute: DashboardReportsRoute,
+  DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardStudentsRoute: DashboardStudentsRoute,
+  DashboardTeachersRoute: DashboardTeachersRoute,
+  DashboardTimetableRoute: DashboardTimetableRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AiRoute: AiRoute,
   ContactRoute: ContactRoute,
+  DashboardRoute: DashboardRouteWithChildren,
   FeaturesRoute: FeaturesRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
@@ -313,13 +594,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
