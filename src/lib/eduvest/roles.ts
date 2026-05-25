@@ -74,9 +74,7 @@ const ALL: Permission[] = [
 
 export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   owner: ALL,
-  admin: ALL.filter((p) => p !== "settings.users" ? true : true).filter(
-    (p) => !["finance.write", "payroll.write"].includes(p),
-  ).concat(["finance.write" as Permission]),
+  admin: ALL.filter((p) => !["payroll.write"].includes(p)),
   finance: [
     "dashboard.view",
     "finance.view",
