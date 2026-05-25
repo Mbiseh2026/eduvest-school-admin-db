@@ -294,7 +294,7 @@ function CreatePayrollDialog({
 
         <div className="grid gap-4">
           <Field label="Teacher">
-            <select value={teacherId} onChange={(e) => setTeacherId(e.target.value)} className="dlg-input">
+            <select value={teacherId} onChange={(e) => setTeacherId(e.target.value)} className="field-input">
               {TEACHERS.map((t) => (
                 <option key={t.id} value={t.id}>{t.name} — {t.department}</option>
               ))}
@@ -303,29 +303,29 @@ function CreatePayrollDialog({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Payment type">
-              <select value={paymentType} onChange={(e) => setPaymentType(e.target.value as PaymentType)} className="dlg-input">
+              <select value={paymentType} onChange={(e) => setPaymentType(e.target.value as PaymentType)} className="field-input">
                 {PAYMENT_TYPES.map((p) => <option key={p}>{p}</option>)}
               </select>
             </Field>
             <Field label="Payroll period">
-              <input value={period} onChange={(e) => setPeriod(e.target.value)} className="dlg-input" placeholder="e.g. May 2026" />
+              <input value={period} onChange={(e) => setPeriod(e.target.value)} className="field-input" placeholder="e.g. May 2026" />
             </Field>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-3">
             <Field label="Gross (XAF)">
-              <input type="number" min={0} value={gross} onChange={(e) => setGross(Number(e.target.value) || 0)} className="dlg-input" />
+              <input type="number" min={0} value={gross} onChange={(e) => setGross(Number(e.target.value) || 0)} className="field-input" />
             </Field>
             <Field label="Bonus (XAF)">
-              <input type="number" min={0} value={bonus} onChange={(e) => setBonus(Number(e.target.value) || 0)} className="dlg-input" />
+              <input type="number" min={0} value={bonus} onChange={(e) => setBonus(Number(e.target.value) || 0)} className="field-input" />
             </Field>
             <Field label="Deduction (XAF)">
-              <input type="number" min={0} value={deduction} onChange={(e) => setDeduction(Number(e.target.value) || 0)} className="dlg-input" />
+              <input type="number" min={0} value={deduction} onChange={(e) => setDeduction(Number(e.target.value) || 0)} className="field-input" />
             </Field>
           </div>
 
           <Field label="Note (optional)">
-            <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} className="dlg-input" placeholder="e.g. 60 hours @ XAF 4,000" />
+            <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} className="field-input" placeholder="e.g. 60 hours @ XAF 4,000" />
           </Field>
 
           <div className="flex items-center justify-between rounded-xl bg-primary-soft px-4 py-3">
