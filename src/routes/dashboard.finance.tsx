@@ -3,11 +3,16 @@ import { Wallet, PiggyBank, Receipt, TrendingUp } from "lucide-react";
 import { PageHeader, StatCard } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RoleGuard } from "@/components/dashboard/RoleGuard";
 import { TRANSACTIONS } from "@/lib/eduvest/dashboard-mock";
 
 export const Route = createFileRoute("/dashboard/finance")({
   head: () => ({ meta: [{ title: "Finance — EduVest" }, { name: "robots", content: "noindex" }] }),
-  component: FinancePage,
+  component: () => (
+    <RoleGuard permission="finance.view">
+      <FinancePage />
+    </RoleGuard>
+  ),
 });
 
 function FinancePage() {

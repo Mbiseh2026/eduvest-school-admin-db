@@ -32,7 +32,9 @@ import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports
 import { Route as DashboardPayrollRouteImport } from './routes/dashboard.payroll'
 import { Route as DashboardParentsRouteImport } from './routes/dashboard.parents'
 import { Route as DashboardMessagesRouteImport } from './routes/dashboard.messages'
+import { Route as DashboardIncomeRouteImport } from './routes/dashboard.income'
 import { Route as DashboardFinanceRouteImport } from './routes/dashboard.finance'
+import { Route as DashboardExpenditureRouteImport } from './routes/dashboard.expenditure'
 import { Route as DashboardDigitalIdRouteImport } from './routes/dashboard.digital-id'
 import { Route as DashboardAttendanceRouteImport } from './routes/dashboard.attendance'
 import { Route as DashboardAiRouteImport } from './routes/dashboard.ai'
@@ -152,9 +154,19 @@ const DashboardMessagesRoute = DashboardMessagesRouteImport.update({
   path: '/messages',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardIncomeRoute = DashboardIncomeRouteImport.update({
+  id: '/income',
+  path: '/income',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardFinanceRoute = DashboardFinanceRouteImport.update({
   id: '/finance',
   path: '/finance',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardExpenditureRoute = DashboardExpenditureRouteImport.update({
+  id: '/expenditure',
+  path: '/expenditure',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardDigitalIdRoute = DashboardDigitalIdRouteImport.update({
@@ -191,7 +203,9 @@ export interface FileRoutesByFullPath {
   '/dashboard/ai': typeof DashboardAiRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/digital-id': typeof DashboardDigitalIdRoute
+  '/dashboard/expenditure': typeof DashboardExpenditureRoute
   '/dashboard/finance': typeof DashboardFinanceRoute
+  '/dashboard/income': typeof DashboardIncomeRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/parents': typeof DashboardParentsRoute
   '/dashboard/payroll': typeof DashboardPayrollRoute
@@ -219,7 +233,9 @@ export interface FileRoutesByTo {
   '/dashboard/ai': typeof DashboardAiRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/digital-id': typeof DashboardDigitalIdRoute
+  '/dashboard/expenditure': typeof DashboardExpenditureRoute
   '/dashboard/finance': typeof DashboardFinanceRoute
+  '/dashboard/income': typeof DashboardIncomeRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/parents': typeof DashboardParentsRoute
   '/dashboard/payroll': typeof DashboardPayrollRoute
@@ -249,7 +265,9 @@ export interface FileRoutesById {
   '/dashboard/ai': typeof DashboardAiRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/digital-id': typeof DashboardDigitalIdRoute
+  '/dashboard/expenditure': typeof DashboardExpenditureRoute
   '/dashboard/finance': typeof DashboardFinanceRoute
+  '/dashboard/income': typeof DashboardIncomeRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/parents': typeof DashboardParentsRoute
   '/dashboard/payroll': typeof DashboardPayrollRoute
@@ -280,7 +298,9 @@ export interface FileRouteTypes {
     | '/dashboard/ai'
     | '/dashboard/attendance'
     | '/dashboard/digital-id'
+    | '/dashboard/expenditure'
     | '/dashboard/finance'
+    | '/dashboard/income'
     | '/dashboard/messages'
     | '/dashboard/parents'
     | '/dashboard/payroll'
@@ -308,7 +328,9 @@ export interface FileRouteTypes {
     | '/dashboard/ai'
     | '/dashboard/attendance'
     | '/dashboard/digital-id'
+    | '/dashboard/expenditure'
     | '/dashboard/finance'
+    | '/dashboard/income'
     | '/dashboard/messages'
     | '/dashboard/parents'
     | '/dashboard/payroll'
@@ -337,7 +359,9 @@ export interface FileRouteTypes {
     | '/dashboard/ai'
     | '/dashboard/attendance'
     | '/dashboard/digital-id'
+    | '/dashboard/expenditure'
     | '/dashboard/finance'
+    | '/dashboard/income'
     | '/dashboard/messages'
     | '/dashboard/parents'
     | '/dashboard/payroll'
@@ -529,11 +553,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardMessagesRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/income': {
+      id: '/dashboard/income'
+      path: '/income'
+      fullPath: '/dashboard/income'
+      preLoaderRoute: typeof DashboardIncomeRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/finance': {
       id: '/dashboard/finance'
       path: '/finance'
       fullPath: '/dashboard/finance'
       preLoaderRoute: typeof DashboardFinanceRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/expenditure': {
+      id: '/dashboard/expenditure'
+      path: '/expenditure'
+      fullPath: '/dashboard/expenditure'
+      preLoaderRoute: typeof DashboardExpenditureRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/digital-id': {
@@ -564,7 +602,9 @@ interface DashboardRouteChildren {
   DashboardAiRoute: typeof DashboardAiRoute
   DashboardAttendanceRoute: typeof DashboardAttendanceRoute
   DashboardDigitalIdRoute: typeof DashboardDigitalIdRoute
+  DashboardExpenditureRoute: typeof DashboardExpenditureRoute
   DashboardFinanceRoute: typeof DashboardFinanceRoute
+  DashboardIncomeRoute: typeof DashboardIncomeRoute
   DashboardMessagesRoute: typeof DashboardMessagesRoute
   DashboardParentsRoute: typeof DashboardParentsRoute
   DashboardPayrollRoute: typeof DashboardPayrollRoute
@@ -580,7 +620,9 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAiRoute: DashboardAiRoute,
   DashboardAttendanceRoute: DashboardAttendanceRoute,
   DashboardDigitalIdRoute: DashboardDigitalIdRoute,
+  DashboardExpenditureRoute: DashboardExpenditureRoute,
   DashboardFinanceRoute: DashboardFinanceRoute,
+  DashboardIncomeRoute: DashboardIncomeRoute,
   DashboardMessagesRoute: DashboardMessagesRoute,
   DashboardParentsRoute: DashboardParentsRoute,
   DashboardPayrollRoute: DashboardPayrollRoute,

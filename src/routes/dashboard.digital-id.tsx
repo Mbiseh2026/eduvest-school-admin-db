@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { STUDENTS, TEACHERS } from "@/lib/eduvest/dashboard-mock";
+import { generateQrToken } from "@/lib/eduvest/finance-mock";
 import { useOnboarding } from "@/hooks/use-onboarding";
 
 export const Route = createFileRoute("/dashboard/digital-id")({
@@ -55,6 +56,7 @@ function DigitalIdPage() {
               detail={`${selectedStudent.section} · ${selectedStudent.className}`}
               photo={selectedStudent.photo}
               code={selectedStudent.studentId}
+              token={generateQrToken("STU", selectedStudent.id)}
               school={school}
             />
           </div>
@@ -81,11 +83,16 @@ function DigitalIdPage() {
               detail={`${TEACHERS[0].subject} · ${TEACHERS[0].department}`}
               photo={`https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(TEACHERS[0].name)}`}
               code="STF-2025-001"
+              token={generateQrToken("STF", TEACHERS[0].id)}
               school={school}
             />
           </div>
         </TabsContent>
       </Tabs>
+
+      <div className="rounded-2xl border border-dashed border-border bg-card/60 p-5 text-xs text-muted-foreground">
+        QR codes carry a secure token only — no name, class or phone number. The Gate App resolves the token against the backend to validate entry.
+      </div>
     </div>
   );
 }
@@ -96,6 +103,7 @@ function IdCard({
   detail,
   photo,
   code,
+  token,
   school,
 }: {
   name: string;
@@ -103,6 +111,7 @@ function IdCard({
   detail: string;
   photo: string;
   code: string;
+  token: string;
   school: string;
 }) {
   return (
@@ -121,8 +130,9 @@ function IdCard({
           </div>
         </div>
         <div className="flex items-center justify-between border-t border-border bg-secondary/40 px-5 py-3">
-          <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
-            Valid this academic year
+          <div className="space-y-1">
+            <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Secure token</div>
+            <code className="block max-w-[180px] truncate font-mono text-[11px] text-foreground/80">{token}</code>
           </div>
           <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground">
             <QrCode className="h-10 w-10" />

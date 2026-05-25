@@ -1,19 +1,40 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Sparkles, MessageCircle, TrendingUp, AlertTriangle, FileBarChart, Wifi } from "lucide-react";
+import { Sparkles, MessageCircle, TrendingUp, AlertTriangle, FileBarChart, Wifi, ShieldCheck } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import { RoleGuard } from "@/components/dashboard/RoleGuard";
+import { useRole } from "@/hooks/use-role";
+import { ROLE_LABELS } from "@/lib/eduvest/roles";
 
 export const Route = createFileRoute("/dashboard/ai")({
   head: () => ({ meta: [{ title: "AI Insights — EduVest" }, { name: "robots", content: "noindex" }] }),
-  component: AiInsightsPage,
+  component: () => (
+    <RoleGuard permission="ai.dashboard">
+      <AiInsightsPage />
+    </RoleGuard>
+  ),
 });
 
 function AiInsightsPage() {
+  const { role } = useRole();
   return (
     <div className="space-y-8">
       <PageHeader
         title="AI Insights"
         description="A preview of where EduVest AI is heading. No real models run yet — this is positioning and roadmap."
       />
+
+      <div className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4 text-sm">
+        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
+          <ShieldCheck className="h-4 w-4" />
+        </span>
+        <div>
+          <p className="font-medium">Role-filtered AI</p>
+          <p className="text-xs text-muted-foreground">
+            EduVest AI respects your permissions. As <span className="font-medium text-foreground">{ROLE_LABELS[role]}</span>, you see attendance, finance and reports signals only — never payroll details unless your role allows it.
+          </p>
+        </div>
+      </div>
+
 
       <section>
         <div className="flex items-center gap-2">

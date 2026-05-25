@@ -24,6 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RoleGuard } from "@/components/dashboard/RoleGuard";
 import {
   PAYROLL_RECORDS,
   PAYMENT_TYPES,
@@ -38,7 +39,11 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard/payroll")({
   head: () => ({ meta: [{ title: "Payroll — EduVest" }, { name: "robots", content: "noindex" }] }),
-  component: PayrollPage,
+  component: () => (
+    <RoleGuard permission="payroll.view">
+      <PayrollPage />
+    </RoleGuard>
+  ),
 });
 
 function PayrollPage() {
