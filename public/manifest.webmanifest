@@ -1,0 +1,16 @@
+{
+  "name": "EduVest",
+  "short_name": "EduVest",
+  "description": "School ERP + Financial Intelligence platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16A34A",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}
