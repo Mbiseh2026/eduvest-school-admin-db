@@ -113,7 +113,7 @@ function WorkspacePage() {
         </div>
 
         <div className="mt-10 rounded-2xl border border-dashed border-border bg-card/60 p-6 text-center text-sm text-muted-foreground">
-          The dashboard modules (attendance, finance, payroll, AI, reports) are coming in the next phase.
+          Pick a workspace above to open its dashboard. You can switch workspaces anytime from the top bar.
           For now, your onboarding and architecture are ready. Want to tweak setup?{" "}
           <Link to="/onboarding" className="font-semibold text-primary hover:underline">Edit workspace</Link>
         </div>
