@@ -29,6 +29,7 @@ import { Route as DashboardTeachersRouteImport } from './routes/dashboard.teache
 import { Route as DashboardStudentsRouteImport } from './routes/dashboard.students'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
+import { Route as DashboardPayrollRouteImport } from './routes/dashboard.payroll'
 import { Route as DashboardParentsRouteImport } from './routes/dashboard.parents'
 import { Route as DashboardMessagesRouteImport } from './routes/dashboard.messages'
 import { Route as DashboardFinanceRouteImport } from './routes/dashboard.finance'
@@ -136,6 +137,11 @@ const DashboardReportsRoute = DashboardReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardPayrollRoute = DashboardPayrollRouteImport.update({
+  id: '/payroll',
+  path: '/payroll',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardParentsRoute = DashboardParentsRouteImport.update({
   id: '/parents',
   path: '/parents',
@@ -188,6 +194,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/finance': typeof DashboardFinanceRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/parents': typeof DashboardParentsRoute
+  '/dashboard/payroll': typeof DashboardPayrollRoute
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/students': typeof DashboardStudentsRoute
@@ -215,6 +222,7 @@ export interface FileRoutesByTo {
   '/dashboard/finance': typeof DashboardFinanceRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/parents': typeof DashboardParentsRoute
+  '/dashboard/payroll': typeof DashboardPayrollRoute
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/students': typeof DashboardStudentsRoute
@@ -244,6 +252,7 @@ export interface FileRoutesById {
   '/dashboard/finance': typeof DashboardFinanceRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/parents': typeof DashboardParentsRoute
+  '/dashboard/payroll': typeof DashboardPayrollRoute
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/students': typeof DashboardStudentsRoute
@@ -274,6 +283,7 @@ export interface FileRouteTypes {
     | '/dashboard/finance'
     | '/dashboard/messages'
     | '/dashboard/parents'
+    | '/dashboard/payroll'
     | '/dashboard/reports'
     | '/dashboard/settings'
     | '/dashboard/students'
@@ -301,6 +311,7 @@ export interface FileRouteTypes {
     | '/dashboard/finance'
     | '/dashboard/messages'
     | '/dashboard/parents'
+    | '/dashboard/payroll'
     | '/dashboard/reports'
     | '/dashboard/settings'
     | '/dashboard/students'
@@ -329,6 +340,7 @@ export interface FileRouteTypes {
     | '/dashboard/finance'
     | '/dashboard/messages'
     | '/dashboard/parents'
+    | '/dashboard/payroll'
     | '/dashboard/reports'
     | '/dashboard/settings'
     | '/dashboard/students'
@@ -496,6 +508,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardReportsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/payroll': {
+      id: '/dashboard/payroll'
+      path: '/payroll'
+      fullPath: '/dashboard/payroll'
+      preLoaderRoute: typeof DashboardPayrollRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/parents': {
       id: '/dashboard/parents'
       path: '/parents'
@@ -548,6 +567,7 @@ interface DashboardRouteChildren {
   DashboardFinanceRoute: typeof DashboardFinanceRoute
   DashboardMessagesRoute: typeof DashboardMessagesRoute
   DashboardParentsRoute: typeof DashboardParentsRoute
+  DashboardPayrollRoute: typeof DashboardPayrollRoute
   DashboardReportsRoute: typeof DashboardReportsRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardStudentsRoute: typeof DashboardStudentsRoute
@@ -563,6 +583,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardFinanceRoute: DashboardFinanceRoute,
   DashboardMessagesRoute: DashboardMessagesRoute,
   DashboardParentsRoute: DashboardParentsRoute,
+  DashboardPayrollRoute: DashboardPayrollRoute,
   DashboardReportsRoute: DashboardReportsRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardStudentsRoute: DashboardStudentsRoute,
@@ -594,3 +615,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
