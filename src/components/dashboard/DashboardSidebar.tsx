@@ -96,8 +96,10 @@ export function DashboardSidebar({
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           <ul className="space-y-1">
             {NAV_ITEMS.map((item) => {
-              const active = isActive(item.to, "exact" in item ? item.exact : false);
+              const active = isActive(item.to, item.exact);
               const Icon = item.icon;
+              const groupActive =
+                active || item.children?.some((c) => isActive(c.to)) || false;
               return (
                 <li key={item.to}>
                   <Link
@@ -105,7 +107,7 @@ export function DashboardSidebar({
                     onClick={onClose}
                     className={cn(
                       "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-                      active
+                      groupActive
                         ? "bg-primary-soft text-primary"
                         : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                     )}
@@ -113,16 +115,40 @@ export function DashboardSidebar({
                     <Icon
                       className={cn(
                         "h-4 w-4 shrink-0",
-                        active ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
+                        groupActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
                       )}
                     />
                     {item.label}
                   </Link>
+                  {item.children && groupActive && (
+                    <ul className="mt-1 space-y-0.5 border-l border-border pl-4 ml-5">
+                      {item.children.map((child) => {
+                        const childActive = isActive(child.to);
+                        return (
+                          <li key={child.to}>
+                            <Link
+                              to={child.to}
+                              onClick={onClose}
+                              className={cn(
+                                "flex items-center rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+                                childActive
+                                  ? "bg-primary-soft/60 text-primary"
+                                  : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                              )}
+                            >
+                              {child.label}
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                 </li>
               );
             })}
           </ul>
         </nav>
+
 
         <div className="shrink-0 border-t border-border p-4">
           <div className="rounded-xl bg-gradient-navy p-4 text-navy-foreground">
