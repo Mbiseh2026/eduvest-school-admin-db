@@ -3,11 +3,15 @@ import { getItem, setItem } from "@/lib/eduvest/storage";
 
 const KEY = "eduvest.workspace";
 
+const DEFAULT = "All School";
+
 export function useWorkspace() {
-  const [workspace, setWs] = useState<string>(() => getItem<string>(KEY, "All School"));
+  // Always start with the default on both server and first client render to avoid hydration mismatch.
+  const [workspace, setWs] = useState<string>(DEFAULT);
 
   useEffect(() => {
-    const onStorage = () => setWs(getItem<string>(KEY, "All School"));
+    setWs(getItem<string>(KEY, DEFAULT));
+    const onStorage = () => setWs(getItem<string>(KEY, DEFAULT));
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
