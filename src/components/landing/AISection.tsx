@@ -22,9 +22,14 @@ export function AISection() {
         <div className="mt-14 grid gap-6 lg:grid-cols-2">
           <div className="rounded-3xl border border-white/15 bg-white/5 p-8 backdrop-blur">
             <h3 className="text-lg font-semibold">In the General App</h3>
-            <p className="mt-1 text-sm text-navy-foreground/70">For everyday use by the school community.</p>
+            <p className="mt-1 text-sm text-navy-foreground/70">For parents, teachers and students — works offline.</p>
             <ul className="mt-5 space-y-3 text-sm">
-              {["Parents — answers about fees, attendance and reports", "Teachers — lesson help, summaries, grading aid", "Students — study support and homework guidance"].map((x) => (
+              {[
+                "Parents — guidance on fees, attendance and child progress",
+                "Teachers — lesson prep, summaries and grading aid",
+                "Students — unlock academic mentors and homework help",
+                "Offline mode — on-device AI when there's no internet",
+              ].map((x) => (
                 <li key={x} className="flex items-start gap-3">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                   {x}
@@ -33,10 +38,15 @@ export function AISection() {
             </ul>
           </div>
           <div className="rounded-3xl border border-white/15 bg-white/5 p-8 backdrop-blur">
-            <h3 className="text-lg font-semibold">In the Dashboard</h3>
+            <h3 className="text-lg font-semibold">In the Smart Attendance App (Dashboard)</h3>
             <p className="mt-1 text-sm text-navy-foreground/70">For school authorities and decision-makers.</p>
             <ul className="mt-5 space-y-3 text-sm">
-              {["Deep analysis across academics & finance", "Attendance trend explanations", "Finance trends and anomaly hints", "Auto-generated reports"].map((x) => (
+              {[
+                "Attendance trends across campuses and classes",
+                "Finance observations and anomaly hints",
+                "Trust-score insights for institutional loans",
+                "Auto-generated reports for boards and parents",
+              ].map((x) => (
                 <li key={x} className="flex items-start gap-3">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                   {x}
