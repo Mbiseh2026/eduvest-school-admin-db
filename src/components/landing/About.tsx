@@ -2,9 +2,9 @@ import { Target, Eye, Heart } from "lucide-react";
 
 export function About() {
   const items = [
-    { icon: Target, title: "Mission", body: "Equip every school with the tools, intelligence and trust to thrive in a digital economy." },
-    { icon: Eye, title: "Vision", body: "An Africa where every learner has a digital identity and every school is financially intelligent." },
-    { icon: Heart, title: "Why EduVest", body: "Because school software shouldn't feel like punishment — and finance shouldn't be a guess." },
+    { icon: Target, title: "Mission", body: "Give every school a modern ERP and every member of its community — teachers, parents, students — access to fair, inclusive education finance." },
+    { icon: Eye, title: "Vision", body: "An Africa where every school is digitally managed and every learner, parent and teacher has a verified financial identity backed by a Trust Score." },
+    { icon: Heart, title: "Why EduVest", body: "Because running a school shouldn't be chaos, and financial inclusion in education shouldn't be a privilege. We unify both in one platform." },
   ];
   return (
     <section className="bg-navy-soft py-20 sm:py-28">
