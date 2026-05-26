@@ -9,6 +9,10 @@ import {
   Users,
   MessageSquare,
   FileBarChart,
+  GraduationCap,
+  HandCoins,
+  ShieldCheck,
+  Landmark,
   type LucideIcon,
 } from "lucide-react";
 
@@ -16,19 +20,25 @@ export type ModuleItem = {
   title: string;
   description: string;
   icon: LucideIcon;
+  tag?: "ERP" | "General App";
 };
 
 export const MODULES: ModuleItem[] = [
-  { title: "Admissions", description: "Streamline applications, screening and enrollment from one place.", icon: BookOpen },
-  { title: "Attendance", description: "Biometric & QR-ready attendance with daily and trend analytics.", icon: CalendarCheck },
-  { title: "Digital ID", description: "Issue secure digital identities for students, staff and parents.", icon: IdCard },
-  { title: "Payroll", description: "Run staff payroll with deductions, payslips and tax-ready exports.", icon: Wallet },
-  { title: "Finance", description: "Fees, expenses, invoices and live cash-flow intelligence.", icon: PiggyBank },
-  { title: "Timetable", description: "Build, share and auto-resolve conflicts across sections and streams.", icon: CalendarRange },
-  { title: "AI", description: "Informational AI assistant for school authorities and stakeholders.", icon: Sparkles },
-  { title: "HR", description: "Staff records, leave, contracts and performance in one workspace.", icon: Users },
-  { title: "Communication", description: "Reach parents and staff via in-app, SMS and email channels.", icon: MessageSquare },
-  { title: "Reports", description: "Beautiful, exportable reports for academics, finance and operations.", icon: FileBarChart },
+  { title: "Admissions", description: "Streamline applications, screening and enrollment from one place.", icon: BookOpen, tag: "ERP" },
+  { title: "Attendance", description: "Biometric & QR-ready attendance with daily and trend analytics.", icon: CalendarCheck, tag: "ERP" },
+  { title: "Digital ID", description: "Issue secure digital identities for students, staff and parents.", icon: IdCard, tag: "ERP" },
+  { title: "Payroll", description: "Run staff payroll with deductions, payslips and salary disbursement.", icon: Wallet, tag: "ERP" },
+  { title: "Finance", description: "Fees, expenses, invoices and live cash-flow intelligence.", icon: PiggyBank, tag: "ERP" },
+  { title: "Timetable", description: "Build, share and auto-resolve conflicts across sections and streams.", icon: CalendarRange, tag: "ERP" },
+  { title: "AI", description: "Informational AI assistant for school authorities and stakeholders.", icon: Sparkles, tag: "ERP" },
+  { title: "HR", description: "Staff records, leave, contracts and performance in one workspace.", icon: Users, tag: "ERP" },
+  { title: "Communication", description: "Reach parents and staff via in-app, SMS and email channels.", icon: MessageSquare, tag: "ERP" },
+  { title: "Reports", description: "Beautiful, exportable reports for academics, finance and operations.", icon: FileBarChart, tag: "ERP" },
+  { title: "Lessons Marketplace", description: "Parents book verified tutors; teachers earn from private lessons.", icon: GraduationCap, tag: "General App" },
+  { title: "Savings", description: "Goal-based savings for parents, students and staff inside the app.", icon: PiggyBank, tag: "General App" },
+  { title: "Emergency Loans", description: "Trust-score backed micro-loans for fees, salaries and school needs.", icon: HandCoins, tag: "General App" },
+  { title: "Insurance", description: "Light insurance products tailored to learners, staff and schools.", icon: ShieldCheck, tag: "General App" },
+  { title: "Salary & Fee Rails", description: "Pay fees, receive salary, settle rent — all through one wallet.", icon: Landmark, tag: "General App" },
 ];
 
 export const CUSTOMERS = [
