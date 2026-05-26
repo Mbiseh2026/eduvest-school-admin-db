@@ -11,15 +11,16 @@ export function Hero() {
         <div className="mx-auto max-w-3xl text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary-soft px-4 py-1.5 text-xs font-semibold text-primary">
             <Sparkles className="h-3.5 w-3.5" />
-            School ERP + Financial Intelligence
+            School ERP + Financial Identity for Education
           </div>
           <h1 className="text-balance text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-            Run your school like a{" "}
-            <span className="bg-gradient-brand bg-clip-text text-transparent">modern business</span>.
+            One platform. Two apps.{" "}
+            <span className="bg-gradient-brand bg-clip-text text-transparent">A trust score for education</span>.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-balance text-lg text-muted-foreground">
-            EduVest unifies admissions, attendance, finance, payroll, communication and AI into one
-            beautifully simple workspace — built for African schools, ready for the world.
+            EduVest gives schools a modern ERP and gives teachers, parents and students a financial
+            identity — pay fees, receive salaries, book lessons, save, insure, and unlock emergency
+            loans, all powered by a unified Trust Score.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild variant="hero" size="xl">
