@@ -30,7 +30,13 @@ function statusCls(s: AdmissionStatus) {
 }
 
 function AdmissionsPage() {
-  const [list, setList] = useState<Admission[]>(ADMISSIONS);
+  const { workspace } = useWorkspace();
+  const isAll = workspace === "All School";
+  const [allList, setAllList] = useState<Admission[]>(ADMISSIONS);
+  const list = useMemo(
+    () => (isAll ? allList : allList.filter((a) => a.workspace === workspace)),
+    [allList, isAll, workspace],
+  );
   const [q, setQ] = useState("");
   const [showNew, setShowNew] = useState(false);
 
@@ -45,7 +51,7 @@ function AdmissionsPage() {
     .filter((a) => !s || a.status === s || (s === "Under Review" && a.status === "Submitted"))
     .filter((a) => !q || a.studentName.toLowerCase().includes(q.toLowerCase()) || a.parentName.toLowerCase().includes(q.toLowerCase()) || a.ref.toLowerCase().includes(q.toLowerCase()));
 
-  const updateStatus = (id: string, status: AdmissionStatus) => setList((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
+  const updateStatus = (id: string, status: AdmissionStatus) => setAllList((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
 
   return (
     <div className="space-y-6">
