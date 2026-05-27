@@ -10,7 +10,7 @@ import { generateQrToken } from "@/lib/eduvest/finance-mock";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useLanguage } from "@/hooks/use-language";
-import { getAllWorkspaces, getLevels } from "@/lib/eduvest/academic-levels";
+import { getLevels } from "@/lib/eduvest/academic-levels";
 import { downloadIdCard, printIdCard, previewIdCard, type IdCardData } from "@/lib/eduvest/print-pdf";
 import { cn } from "@/lib/utils";
 
@@ -23,12 +23,27 @@ function DigitalIdPage() {
   const { state } = useOnboarding();
   const { workspace } = useWorkspace();
   const { lang } = useLanguage();
+  const isAll = workspace === "All School";
+  const lockedWs = isAll ? null : workspace;
+
   const [tab, setTab] = useState<"students" | "teachers">("students");
-  const [selectedWs, setSelectedWs] = useState<string>(workspace === "All School" ? "" : workspace);
+  const [pickedWs, setPickedWs] = useState<string>("");
   const [selectedLevel, setSelectedLevel] = useState<string>("");
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(TEACHERS[0]);
+
+  const studentsScope = useMemo(
+    () => (lockedWs ? STUDENTS.filter((s) => s.workspace === lockedWs) : STUDENTS),
+    [lockedWs],
+  );
+  const teachersScope = useMemo(
+    () => (lockedWs ? TEACHERS.filter((t) => t.workspace === lockedWs) : TEACHERS),
+    [lockedWs],
+  );
+
+  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(teachersScope[0] ?? null);
   const [previewUri, setPreviewUri] = useState<string | null>(null);
+
+  const selectedWs = lockedWs ?? pickedWs;
 
   const school = {
     name: state.profile.schoolName || "Greenfield School",
@@ -37,12 +52,13 @@ function DigitalIdPage() {
   };
 
   const workspaces = useMemo(() => {
+    if (lockedWs) return [lockedWs];
     const set = new Set<string>();
-    STUDENTS.forEach((s) => set.add(s.workspace));
+    studentsScope.forEach((s) => set.add(s.workspace));
     return Array.from(set);
-  }, []);
+  }, [studentsScope, lockedWs]);
 
-  const classStudents = STUDENTS.filter((s) => (!selectedWs || s.workspace === selectedWs) && (!selectedLevel || s.level === selectedLevel));
+  const classStudents = studentsScope.filter((s) => (!selectedWs || s.workspace === selectedWs) && (!selectedLevel || s.level === selectedLevel));
 
   const buildStudentCard = (s: Student): IdCardData => ({
     name: s.name,
@@ -103,31 +119,37 @@ function DigitalIdPage() {
 
         <TabsContent value="students" className="mt-4">
           <div className="flex flex-wrap items-center gap-2 text-sm mb-3">
-            <button onClick={() => { setSelectedWs(""); setSelectedLevel(""); setSelectedStudent(null); }} className="text-muted-foreground hover:text-foreground">All workspaces</button>
-            {selectedWs && (<><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" /><button onClick={() => { setSelectedLevel(""); setSelectedStudent(null); }} className={cn("hover:text-foreground", selectedLevel ? "text-muted-foreground" : "font-semibold text-foreground")}>{selectedWs}</button></>)}
+            {isAll ? (
+              <button onClick={() => { setPickedWs(""); setSelectedLevel(""); setSelectedStudent(null); }} className="text-muted-foreground hover:text-foreground">All workspaces</button>
+            ) : (
+              <span className="font-semibold text-foreground">{workspace}</span>
+            )}
+            {isAll && selectedWs && (<><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" /><button onClick={() => { setSelectedLevel(""); setSelectedStudent(null); }} className={cn("hover:text-foreground", selectedLevel ? "text-muted-foreground" : "font-semibold text-foreground")}>{selectedWs}</button></>)}
             {selectedLevel && (<><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" /><span className="font-semibold">{selectedLevel}</span></>)}
           </div>
 
           <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
             <div>
-              {!selectedWs && (
+              {isAll && !selectedWs && (
                 <div className="grid gap-3 sm:grid-cols-2">
                   {workspaces.map((w) => (
-                    <button key={w} onClick={() => setSelectedWs(w)} className="rounded-2xl border border-border bg-card p-4 text-left hover:border-primary">
+                    <button key={w} onClick={() => setPickedWs(w)} className="rounded-2xl border border-border bg-card p-4 text-left hover:border-primary">
                       <p className="font-semibold">{w}</p>
-                      <p className="text-xs text-muted-foreground">{STUDENTS.filter((s) => s.workspace === w).length} students</p>
+                      <p className="text-xs text-muted-foreground">{studentsScope.filter((s) => s.workspace === w).length} students</p>
                     </button>
                   ))}
                 </div>
               )}
               {selectedWs && !selectedLevel && (
                 <div>
-                  <Button variant="ghost" size="sm" onClick={() => setSelectedWs("")} className="mb-3"><ArrowLeft className="h-3.5 w-3.5" /> Back</Button>
+                  {isAll && (
+                    <Button variant="ghost" size="sm" onClick={() => setPickedWs("")} className="mb-3"><ArrowLeft className="h-3.5 w-3.5" /> Back</Button>
+                  )}
                   <div className="grid gap-3 sm:grid-cols-2">
                     {getLevels(selectedWs, lang).map((l) => (
                       <button key={l} onClick={() => setSelectedLevel(l)} className="rounded-2xl border border-border bg-card p-4 text-left hover:border-primary">
                         <p className="font-semibold">{l}</p>
-                        <p className="text-xs text-muted-foreground">{STUDENTS.filter((s) => s.workspace === selectedWs && s.level === l).length} students</p>
+                        <p className="text-xs text-muted-foreground">{studentsScope.filter((s) => s.workspace === selectedWs && s.level === l).length} students</p>
                       </button>
                     ))}
                   </div>
@@ -158,10 +180,11 @@ function DigitalIdPage() {
         <TabsContent value="teachers" className="mt-4">
           <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
             <div className="grid gap-3 sm:grid-cols-2">
-              {TEACHERS.map((t) => (
+              {teachersScope.map((t) => (
                 <button key={t.id} onClick={() => setSelectedTeacher(t)} className={cn("flex items-center gap-3 rounded-2xl border bg-card p-3 text-left", selectedTeacher?.id === t.id ? "border-primary" : "border-border hover:border-primary/40")}>
                   <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-primary">
                     <GraduationCap className="h-5 w-5" />
+
                   </span>
                   <div>
                     <p className="text-sm font-semibold">{t.name}</p>

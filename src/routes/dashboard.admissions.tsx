@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { RoleGuard } from "@/components/dashboard/RoleGuard";
 import { ADMISSIONS, ADMISSION_STATUSES, type Admission, type AdmissionStatus } from "@/lib/eduvest/admissions-mock";
 import { useLanguage } from "@/hooks/use-language";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { getAllWorkspaces, getLevels } from "@/lib/eduvest/academic-levels";
 import { cn } from "@/lib/utils";
 
@@ -29,7 +30,13 @@ function statusCls(s: AdmissionStatus) {
 }
 
 function AdmissionsPage() {
-  const [list, setList] = useState<Admission[]>(ADMISSIONS);
+  const { workspace } = useWorkspace();
+  const isAll = workspace === "All School";
+  const [allList, setAllList] = useState<Admission[]>(ADMISSIONS);
+  const list = useMemo(
+    () => (isAll ? allList : allList.filter((a) => a.workspace === workspace)),
+    [allList, isAll, workspace],
+  );
   const [q, setQ] = useState("");
   const [showNew, setShowNew] = useState(false);
 
@@ -44,7 +51,7 @@ function AdmissionsPage() {
     .filter((a) => !s || a.status === s || (s === "Under Review" && a.status === "Submitted"))
     .filter((a) => !q || a.studentName.toLowerCase().includes(q.toLowerCase()) || a.parentName.toLowerCase().includes(q.toLowerCase()) || a.ref.toLowerCase().includes(q.toLowerCase()));
 
-  const updateStatus = (id: string, status: AdmissionStatus) => setList((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
+  const updateStatus = (id: string, status: AdmissionStatus) => setAllList((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
 
   return (
     <div className="space-y-6">
@@ -95,7 +102,7 @@ function AdmissionsPage() {
         </TabsContent>
       </Tabs>
 
-      {showNew && <NewAdmissionDialog onClose={() => setShowNew(false)} onCreate={(a) => { setList((p) => [a, ...p]); setShowNew(false); }} />}
+      {showNew && <NewAdmissionDialog defaultWorkspace={isAll ? "Primary" : workspace} lockWorkspace={!isAll} onClose={() => setShowNew(false)} onCreate={(a) => { setAllList((p) => [a, ...p]); setShowNew(false); }} />}
     </div>
   );
 }
@@ -141,13 +148,13 @@ function AdmissionTable({ rows, onUpdate }: { rows: Admission[]; onUpdate: (id: 
   );
 }
 
-function NewAdmissionDialog({ onClose, onCreate }: { onClose: () => void; onCreate: (a: Admission) => void }) {
+function NewAdmissionDialog({ onClose, onCreate, defaultWorkspace = "Primary", lockWorkspace = false }: { onClose: () => void; onCreate: (a: Admission) => void; defaultWorkspace?: string; lockWorkspace?: boolean }) {
   const { lang } = useLanguage();
   const [studentName, setStudentName] = useState("");
   const [parentName, setParentName] = useState("");
   const [parentPhone, setParentPhone] = useState("");
   const [parentEmail, setParentEmail] = useState("");
-  const [workspace, setWs] = useState("Primary");
+  const [workspace, setWs] = useState(defaultWorkspace);
   const [classPref, setClassPref] = useState("");
   const [feePaid, setFeePaid] = useState(false);
   const [note, setNote] = useState("");
@@ -167,16 +174,19 @@ function NewAdmissionDialog({ onClose, onCreate }: { onClose: () => void; onCrea
       <DialogContent>
         <DialogHeader>
           <DialogTitle>New application</DialogTitle>
-          <DialogDescription>Light intake form. Backend processing comes later.</DialogDescription>
+          <DialogDescription>{lockWorkspace ? `Workspace: ${workspace}` : "Light intake form. Backend processing comes later."}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3 sm:grid-cols-2">
           <FieldInput label="Student name" value={studentName} onChange={setStudentName} />
           <FieldInput label="Parent name" value={parentName} onChange={setParentName} />
           <FieldInput label="Parent phone" value={parentPhone} onChange={setParentPhone} />
           <FieldInput label="Parent email" value={parentEmail} onChange={setParentEmail} />
-          <FieldSelect label="Workspace" value={workspace} options={getAllWorkspaces()} onChange={(v) => { setWs(v); setClassPref(""); }} />
+          {!lockWorkspace && (
+            <FieldSelect label="Workspace" value={workspace} options={getAllWorkspaces()} onChange={(v) => { setWs(v); setClassPref(""); }} />
+          )}
           <FieldSelect label="Class preference" value={classPref} options={getLevels(workspace, lang)} onChange={setClassPref} />
         </div>
+
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={feePaid} onChange={(e) => setFeePaid(e.target.checked)} />
           Admission fee received

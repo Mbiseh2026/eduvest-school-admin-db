@@ -41,6 +41,7 @@ export type Teacher = {
   department: string;
   position: string;
   phone: string;
+  workspace: string;
   attendance: number;
   payroll: string;
   monthlyHours: number;
@@ -101,11 +102,11 @@ export const PARENTS: Parent[] = [
 ];
 
 export const TEACHERS: Teacher[] = [
-  { id: "t1", name: "Mr. Emeka Obi", subject: "Mathematics", department: "Sciences", position: "Senior Teacher", phone: "+234 803 22 11 01", attendance: 98, payroll: "XAF 320,000", monthlyHours: 80, hoursTaught: 78, attendanceHours: 76 },
-  { id: "t2", name: "Mme. Aline Foka", subject: "French", department: "Languages", position: "Teacher", phone: "+237 670 22 11 02", attendance: 95, payroll: "XAF 280,000", monthlyHours: 70, hoursTaught: 70, attendanceHours: 68 },
-  { id: "t3", name: "Mr. Samuel Kim", subject: "Physics", department: "Sciences", position: "Lab Teacher", phone: "+237 670 22 11 03", attendance: 92, payroll: "XAF 310,000", monthlyHours: 60, hoursTaught: 58, attendanceHours: 55 },
-  { id: "t4", name: "Mrs. Lillian Boateng", subject: "History", department: "Humanities", position: "Teacher", phone: "+233 244 22 11 04", attendance: 97, payroll: "XAF 270,000", monthlyHours: 65, hoursTaught: 64, attendanceHours: 63 },
-  { id: "t5", name: "Mr. Ibrahim Sow", subject: "ICT", department: "Sciences", position: "Head of ICT", phone: "+221 77 22 11 05", attendance: 90, payroll: "XAF 350,000", monthlyHours: 72, hoursTaught: 70, attendanceHours: 65 },
+  { id: "t1", name: "Mr. Emeka Obi", subject: "Mathematics", department: "Sciences", position: "Senior Teacher", phone: "+234 803 22 11 01", workspace: "Secondary", attendance: 98, payroll: "XAF 320,000", monthlyHours: 80, hoursTaught: 78, attendanceHours: 76 },
+  { id: "t2", name: "Mme. Aline Foka", subject: "French", department: "Languages", position: "Teacher", phone: "+237 670 22 11 02", workspace: "Primary", attendance: 95, payroll: "XAF 280,000", monthlyHours: 70, hoursTaught: 70, attendanceHours: 68 },
+  { id: "t3", name: "Mr. Samuel Kim", subject: "Physics", department: "Sciences", position: "Lab Teacher", phone: "+237 670 22 11 03", workspace: "Secondary", attendance: 92, payroll: "XAF 310,000", monthlyHours: 60, hoursTaught: 58, attendanceHours: 55 },
+  { id: "t4", name: "Mrs. Lillian Boateng", subject: "History", department: "Humanities", position: "Teacher", phone: "+233 244 22 11 04", workspace: "Primary", attendance: 97, payroll: "XAF 270,000", monthlyHours: 65, hoursTaught: 64, attendanceHours: 63 },
+  { id: "t5", name: "Mr. Ibrahim Sow", subject: "ICT", department: "Sciences", position: "Head of ICT", phone: "+221 77 22 11 05", workspace: "University", attendance: 90, payroll: "XAF 350,000", monthlyHours: 72, hoursTaught: 70, attendanceHours: 65 },
 ];
 
 export const MESSAGES: Message[] = [

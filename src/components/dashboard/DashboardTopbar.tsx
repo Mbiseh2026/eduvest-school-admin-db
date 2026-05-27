@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Bell, Search, Menu, Globe, LogOut, User, ChevronDown, Check, GraduationCap, Users, UserCog, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,18 +32,30 @@ export function DashboardTopbar({ onMenu }: { onMenu: () => void }) {
   const { state } = useOnboarding();
   const { lang, setLang } = useLanguage();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  const isAll = workspace === "All School";
+  const lockedWs = isAll ? null : workspace;
 
   const workspaces = state.profile.schoolTypes.length
     ? [...state.profile.schoolTypes, "All School"]
     : ["Primary", "Secondary", "All School"];
 
-  const initials = user?.fullName?.slice(0, 2).toUpperCase() || "AD";
+  // Avoid hydration mismatch — user comes from localStorage on client only.
+  const initials = mounted ? (user?.fullName?.slice(0, 2).toUpperCase() || "AD") : "AD";
+
+  const students = lockedWs ? STUDENTS.filter((s) => s.workspace === lockedWs) : STUDENTS;
+  const parents = lockedWs ? PARENTS.filter((p) => p.workspace === lockedWs) : PARENTS;
+  const teachers = lockedWs ? TEACHERS.filter((t) => t.workspace === lockedWs) : TEACHERS;
 
   const classes = useMemo(() => {
     const out: { workspace: string; level: string }[] = [];
-    getAllWorkspaces().forEach((w) => getLevels(w, lang).forEach((l) => out.push({ workspace: w, level: l })));
+    const wsList = lockedWs ? [lockedWs] : getAllWorkspaces();
+    wsList.forEach((w) => getLevels(w, lang).forEach((l) => out.push({ workspace: w, level: l })));
     return out;
-  }, [lang]);
+  }, [lang, lockedWs]);
+
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur-xl">
@@ -86,7 +98,7 @@ export function DashboardTopbar({ onMenu }: { onMenu: () => void }) {
           className="relative ml-auto hidden h-10 w-full max-w-md items-center gap-2 rounded-full border border-border bg-secondary/50 px-4 text-left text-sm text-muted-foreground transition-colors hover:bg-secondary md:flex"
         >
           <Search className="h-4 w-4" />
-          <span className="flex-1 truncate">Search students, parents, teachers, classes…</span>
+          <span className="flex-1 truncate">{isAll ? "Search across all workspaces…" : `Search ${workspace} only…`}</span>
           <kbd className="hidden rounded bg-background px-1.5 py-0.5 text-[10px] font-semibold lg:inline">⌘K</kbd>
         </button>
         <button
@@ -161,11 +173,11 @@ export function DashboardTopbar({ onMenu }: { onMenu: () => void }) {
       </div>
 
       <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
-        <CommandInput placeholder="Search students, parents, teachers, classes…" />
+        <CommandInput placeholder={isAll ? "Search across all workspaces…" : `Search ${workspace} only…`} />
         <CommandList>
           <CommandEmpty>No results.</CommandEmpty>
           <CommandGroup heading="Students">
-            {STUDENTS.map((s) => (
+            {students.map((s) => (
               <CommandItem key={s.id} value={`${s.name} ${s.studentId} ${s.level}`} onSelect={() => { setSearchOpen(false); navigate({ to: "/dashboard/students" }); }}>
                 <GraduationCap className="mr-2 h-4 w-4 text-muted-foreground" />
                 <span>{s.name}</span>
@@ -174,20 +186,20 @@ export function DashboardTopbar({ onMenu }: { onMenu: () => void }) {
             ))}
           </CommandGroup>
           <CommandGroup heading="Parents">
-            {PARENTS.map((p) => (
+            {parents.map((p) => (
               <CommandItem key={p.id} value={`${p.name} ${p.children.join(" ")}`} onSelect={() => { setSearchOpen(false); navigate({ to: "/dashboard/parents" }); }}>
                 <Users className="mr-2 h-4 w-4 text-muted-foreground" />
                 <span>{p.name}</span>
-                <span className="ml-auto text-xs text-muted-foreground">{p.children.join(", ")}</span>
+                <span className="ml-auto text-xs text-muted-foreground">{p.workspace} · {p.children.join(", ")}</span>
               </CommandItem>
             ))}
           </CommandGroup>
           <CommandGroup heading="Teachers">
-            {TEACHERS.map((t) => (
+            {teachers.map((t) => (
               <CommandItem key={t.id} value={`${t.name} ${t.subject}`} onSelect={() => { setSearchOpen(false); navigate({ to: "/dashboard/teachers" }); }}>
                 <UserCog className="mr-2 h-4 w-4 text-muted-foreground" />
                 <span>{t.name}</span>
-                <span className="ml-auto text-xs text-muted-foreground">{t.subject}</span>
+                <span className="ml-auto text-xs text-muted-foreground">{t.workspace} · {t.subject}</span>
               </CommandItem>
             ))}
           </CommandGroup>

@@ -52,22 +52,33 @@ function StudentsPage() {
   const { state } = useOnboarding();
   const school = { name: state.profile.schoolName || "Greenfield School", primaryColor: state.branding.primaryColor };
 
-  const [selectedWs, setSelectedWs] = useState<string>(workspace === "All School" ? "" : workspace);
+  const isAll = workspace === "All School";
+  const lockedWs = isAll ? null : workspace;
+
+  const [pickedWs, setPickedWs] = useState<string>("");
   const [selectedLevel, setSelectedLevel] = useState<string>("");
   const [q, setQ] = useState("");
   const [profile, setProfile] = useState<Student | null>(null);
   const [showImport, setShowImport] = useState(false);
   const [students, setStudents] = useState<Student[]>(STUDENTS);
 
+  const selectedWs = lockedWs ?? pickedWs;
+
+  // Base data already scoped to current workspace (unless All School).
+  const scoped = useMemo(
+    () => (lockedWs ? students.filter((s) => s.workspace === lockedWs) : students),
+    [students, lockedWs],
+  );
+
   const workspaces = useMemo(() => {
+    if (lockedWs) return [lockedWs];
     const ws = new Set<string>();
-    students.forEach((s) => ws.add(s.workspace));
-    const list = workspace === "All School" ? Array.from(ws) : [workspace];
-    return list.filter((w) => getAllWorkspaces().includes(w) || w);
-  }, [students, workspace]);
+    scoped.forEach((s) => ws.add(s.workspace));
+    return Array.from(ws).filter((w) => getAllWorkspaces().includes(w) || w);
+  }, [scoped, lockedWs]);
 
   const filtered = useMemo(() => {
-    let rows = students;
+    let rows = scoped;
     if (selectedWs) rows = rows.filter((s) => s.workspace === selectedWs);
     if (selectedLevel) rows = rows.filter((s) => s.level === selectedLevel);
     if (q)
@@ -78,11 +89,10 @@ function StudentsPage() {
           s.parent.toLowerCase().includes(q.toLowerCase()),
       );
     return rows;
-  }, [students, selectedWs, selectedLevel, q]);
+  }, [scoped, selectedWs, selectedLevel, q]);
 
   const doPrint = (sort: StudentSortKey) => {
-    const scope =
-      selectedLevel ? `${selectedWs} · ${selectedLevel}` : selectedWs || workspace;
+    const scope = selectedLevel ? `${selectedWs} · ${selectedLevel}` : selectedWs || workspace;
     printStudentList(filtered, school, sort, scope);
   };
 
@@ -126,20 +136,24 @@ function StudentsPage() {
 
       {/* Breadcrumb */}
       <div className="flex flex-wrap items-center gap-2 text-sm">
-        <button onClick={() => { setSelectedWs(""); setSelectedLevel(""); }} className="text-muted-foreground hover:text-foreground">All workspaces</button>
-        {selectedWs && (<><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" /><button onClick={() => setSelectedLevel("")} className={cn("hover:text-foreground", selectedLevel ? "text-muted-foreground" : "font-semibold text-foreground")}>{selectedWs}</button></>)}
+        {isAll ? (
+          <button onClick={() => { setPickedWs(""); setSelectedLevel(""); }} className="text-muted-foreground hover:text-foreground">All workspaces</button>
+        ) : (
+          <span className="font-semibold text-foreground">{workspace}</span>
+        )}
+        {isAll && selectedWs && (<><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" /><button onClick={() => setSelectedLevel("")} className={cn("hover:text-foreground", selectedLevel ? "text-muted-foreground" : "font-semibold text-foreground")}>{selectedWs}</button></>)}
         {selectedLevel && (<><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" /><span className="font-semibold">{selectedLevel}</span></>)}
       </div>
 
-      {/* WORKSPACE PICKER */}
-      {!selectedWs && (
+      {/* WORKSPACE PICKER — only in All School */}
+      {isAll && !selectedWs && (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {workspaces.map((w) => {
-            const count = students.filter((s) => s.workspace === w).length;
+            const count = scoped.filter((s) => s.workspace === w).length;
             return (
               <button
                 key={w}
-                onClick={() => setSelectedWs(w)}
+                onClick={() => setPickedWs(w)}
                 className="rounded-2xl border border-border bg-card p-5 text-left hover:border-primary"
               >
                 <p className="text-base font-semibold">{w}</p>
@@ -153,12 +167,14 @@ function StudentsPage() {
       {/* LEVEL PICKER */}
       {selectedWs && !selectedLevel && (
         <div>
-          <Button variant="ghost" size="sm" onClick={() => setSelectedWs("")} className="mb-3">
-            <ArrowLeft className="h-3.5 w-3.5" /> All workspaces
-          </Button>
+          {isAll && (
+            <Button variant="ghost" size="sm" onClick={() => setPickedWs("")} className="mb-3">
+              <ArrowLeft className="h-3.5 w-3.5" /> All workspaces
+            </Button>
+          )}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {getLevels(selectedWs, lang).map((lvl) => {
-              const count = students.filter((s) => s.workspace === selectedWs && s.level === lvl).length;
+              const count = scoped.filter((s) => s.workspace === selectedWs && s.level === lvl).length;
               return (
                 <button
                   key={lvl}
@@ -186,7 +202,7 @@ function StudentsPage() {
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search by name, ID or parent…"
+                placeholder={`Search ${selectedWs} students…`}
                 className="h-9 w-full rounded-full border border-border bg-secondary/40 pl-9 pr-4 text-sm outline-none focus:bg-background focus:border-primary"
               />
             </div>

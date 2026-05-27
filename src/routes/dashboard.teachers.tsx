@@ -1,8 +1,10 @@
+import { useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import { TEACHERS } from "@/lib/eduvest/dashboard-mock";
+import { useWorkspace } from "@/hooks/use-workspace";
 
 export const Route = createFileRoute("/dashboard/teachers")({
   head: () => ({ meta: [{ title: "Teachers & HR — EduVest" }, { name: "robots", content: "noindex" }] }),
@@ -10,11 +12,18 @@ export const Route = createFileRoute("/dashboard/teachers")({
 });
 
 function TeachersPage() {
+  const { workspace } = useWorkspace();
+  const isAll = workspace === "All School";
+  const rows = useMemo(
+    () => (isAll ? TEACHERS : TEACHERS.filter((t) => t.workspace === workspace)),
+    [isAll, workspace],
+  );
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Teachers & HR"
-        description="Lightweight HR — staff records, monthly hours, attendance and payroll."
+        description={isAll ? "All workspaces — staff records, monthly hours, attendance and payroll." : `${workspace} only — staff records and payroll.`}
         actions={<Button variant="hero" size="sm"><Plus className="h-4 w-4" /> Add teacher</Button>}
       />
 
@@ -24,6 +33,7 @@ function TeachersPage() {
             <tr className="border-b border-border">
               <th className="px-4 py-3 text-left font-medium">Name</th>
               <th className="px-4 py-3 text-left font-medium">Subject</th>
+              <th className="px-4 py-3 text-left font-medium">Workspace</th>
               <th className="px-4 py-3 text-left font-medium">Department</th>
               <th className="px-4 py-3 text-left font-medium">Phone</th>
               <th className="px-4 py-3 text-right font-medium">Monthly hours</th>
@@ -33,10 +43,11 @@ function TeachersPage() {
             </tr>
           </thead>
           <tbody>
-            {TEACHERS.map((t) => (
+            {rows.map((t) => (
               <tr key={t.id} className="border-b border-border last:border-0 hover:bg-secondary/40">
                 <td className="px-4 py-3 font-medium">{t.name}</td>
                 <td className="px-4 py-3">{t.subject}</td>
+                <td className="px-4 py-3 text-muted-foreground">{t.workspace}</td>
                 <td className="px-4 py-3 text-muted-foreground">{t.department}</td>
                 <td className="px-4 py-3 text-muted-foreground">{t.phone}</td>
                 <td className="px-4 py-3 text-right">{t.monthlyHours}</td>
@@ -45,6 +56,9 @@ function TeachersPage() {
                 <td className="px-4 py-3 text-right font-semibold">{t.payroll}</td>
               </tr>
             ))}
+            {rows.length === 0 && (
+              <tr><td colSpan={9} className="px-4 py-12 text-center text-sm text-muted-foreground">No teachers in this workspace yet.</td></tr>
+            )}
           </tbody>
         </table>
       </div>

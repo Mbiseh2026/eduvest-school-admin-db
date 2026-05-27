@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MESSAGES, MESSAGE_TEMPLATES, PARENT_THREADS, PARENTS } from "@/lib/eduvest/dashboard-mock";
 import { useLanguage } from "@/hooks/use-language";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { getAllWorkspaces, getLevels } from "@/lib/eduvest/academic-levels";
 import { cn } from "@/lib/utils";
 
@@ -20,13 +21,22 @@ type Recipient = "Parents" | "Students" | "Both";
 
 function MessagesPage() {
   const { lang } = useLanguage();
-  const [scope, setScope] = useState<Scope>("Whole school");
-  const [workspace, setWorkspaceSel] = useState<string>("");
+  const { workspace: currentWs } = useWorkspace();
+  const isAll = currentWs === "All School";
+  const lockedWs = isAll ? null : currentWs;
+
+  const [scope, setScope] = useState<Scope>(lockedWs ? "Workspace" : "Whole school");
+  const [workspace, setWorkspaceSel] = useState<string>(lockedWs ?? "");
   const [level, setLevel] = useState<string>("");
   const [recipient, setRecipient] = useState<Recipient>("Parents");
   const [individual, setIndividual] = useState<string>("");
   const [channel, setChannel] = useState<Channel>("SMS");
   const [body, setBody] = useState("");
+
+  const wsOptions = lockedWs ? [lockedWs] : getAllWorkspaces();
+  const scopeOptions: Scope[] = lockedWs ? ["Workspace", "Class", "Individual"] : ["Whole school", "Workspace", "Class", "Individual"];
+  const parentOptions = lockedWs ? PARENTS.filter((p) => p.workspace === lockedWs) : PARENTS;
+  const historyRows = lockedWs ? MESSAGES.filter((m) => m.audience.includes(lockedWs) || m.audience === "Whole school") : MESSAGES;
 
   const target = useMemo(() => {
     if (scope === "Whole school") return "Whole school";
@@ -86,15 +96,15 @@ function MessagesPage() {
                 <div>
                   <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Scope</label>
                   <select value={scope} onChange={(e) => setScope(e.target.value as Scope)} className="mt-2 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm">
-                    {(["Whole school", "Workspace", "Class", "Individual"] as Scope[]).map((s) => <option key={s}>{s}</option>)}
+                    {scopeOptions.map((s) => <option key={s}>{s}</option>)}
                   </select>
                 </div>
                 {(scope === "Workspace" || scope === "Class") && (
                   <div>
                     <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Workspace</label>
-                    <select value={workspace} onChange={(e) => { setWorkspaceSel(e.target.value); setLevel(""); }} className="mt-2 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm">
-                      <option value="">Select…</option>
-                      {getAllWorkspaces().map((w) => <option key={w}>{w}</option>)}
+                    <select value={workspace} onChange={(e) => { setWorkspaceSel(e.target.value); setLevel(""); }} disabled={!!lockedWs} className="mt-2 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm disabled:opacity-70">
+                      {!lockedWs && <option value="">Select…</option>}
+                      {wsOptions.map((w) => <option key={w}>{w}</option>)}
                     </select>
                   </div>
                 )}
@@ -120,7 +130,7 @@ function MessagesPage() {
                     <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Person</label>
                     <select value={individual} onChange={(e) => setIndividual(e.target.value)} className="mt-2 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm">
                       <option value="">Select parent…</option>
-                      {PARENTS.map((p) => <option key={p.id}>{p.name}</option>)}
+                      {parentOptions.map((p) => <option key={p.id}>{p.name}</option>)}
                     </select>
                   </div>
                 )}
@@ -204,7 +214,7 @@ function MessagesPage() {
                 </tr>
               </thead>
               <tbody>
-                {MESSAGES.map((m) => (
+                {historyRows.map((m) => (
                   <tr key={m.id} className="border-b border-border last:border-0">
                     <td className="px-4 py-3 font-medium">{m.channel}</td>
                     <td className="px-4 py-3 text-muted-foreground">{m.audience}</td>
@@ -236,7 +246,7 @@ function MessagesPage() {
 
         <TabsContent value="classes" className="mt-4">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {getAllWorkspaces().map((w) => (
+            {wsOptions.map((w) => (
               <div key={w} className="rounded-2xl border border-border bg-card p-5">
                 <p className="text-sm font-semibold">{w}</p>
                 <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
