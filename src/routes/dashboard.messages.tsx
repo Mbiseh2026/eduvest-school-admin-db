@@ -214,7 +214,7 @@ function MessagesPage() {
                 </tr>
               </thead>
               <tbody>
-                {MESSAGES.map((m) => (
+                {historyRows.map((m) => (
                   <tr key={m.id} className="border-b border-border last:border-0">
                     <td className="px-4 py-3 font-medium">{m.channel}</td>
                     <td className="px-4 py-3 text-muted-foreground">{m.audience}</td>
