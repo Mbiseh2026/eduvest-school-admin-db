@@ -173,11 +173,11 @@ export function DashboardTopbar({ onMenu }: { onMenu: () => void }) {
       </div>
 
       <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
-        <CommandInput placeholder="Search students, parents, teachers, classes…" />
+        <CommandInput placeholder={isAll ? "Search across all workspaces…" : `Search ${workspace} only…`} />
         <CommandList>
           <CommandEmpty>No results.</CommandEmpty>
           <CommandGroup heading="Students">
-            {STUDENTS.map((s) => (
+            {students.map((s) => (
               <CommandItem key={s.id} value={`${s.name} ${s.studentId} ${s.level}`} onSelect={() => { setSearchOpen(false); navigate({ to: "/dashboard/students" }); }}>
                 <GraduationCap className="mr-2 h-4 w-4 text-muted-foreground" />
                 <span>{s.name}</span>
@@ -186,20 +186,20 @@ export function DashboardTopbar({ onMenu }: { onMenu: () => void }) {
             ))}
           </CommandGroup>
           <CommandGroup heading="Parents">
-            {PARENTS.map((p) => (
+            {parents.map((p) => (
               <CommandItem key={p.id} value={`${p.name} ${p.children.join(" ")}`} onSelect={() => { setSearchOpen(false); navigate({ to: "/dashboard/parents" }); }}>
                 <Users className="mr-2 h-4 w-4 text-muted-foreground" />
                 <span>{p.name}</span>
-                <span className="ml-auto text-xs text-muted-foreground">{p.children.join(", ")}</span>
+                <span className="ml-auto text-xs text-muted-foreground">{p.workspace} · {p.children.join(", ")}</span>
               </CommandItem>
             ))}
           </CommandGroup>
           <CommandGroup heading="Teachers">
-            {TEACHERS.map((t) => (
+            {teachers.map((t) => (
               <CommandItem key={t.id} value={`${t.name} ${t.subject}`} onSelect={() => { setSearchOpen(false); navigate({ to: "/dashboard/teachers" }); }}>
                 <UserCog className="mr-2 h-4 w-4 text-muted-foreground" />
                 <span>{t.name}</span>
-                <span className="ml-auto text-xs text-muted-foreground">{t.subject}</span>
+                <span className="ml-auto text-xs text-muted-foreground">{t.workspace} · {t.subject}</span>
               </CommandItem>
             ))}
           </CommandGroup>
