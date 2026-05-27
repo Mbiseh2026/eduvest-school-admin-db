@@ -246,7 +246,7 @@ function MessagesPage() {
 
         <TabsContent value="classes" className="mt-4">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {getAllWorkspaces().map((w) => (
+            {wsOptions.map((w) => (
               <div key={w} className="rounded-2xl border border-border bg-card p-5">
                 <p className="text-sm font-semibold">{w}</p>
                 <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
