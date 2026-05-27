@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { RoleGuard } from "@/components/dashboard/RoleGuard";
 import { ADMISSIONS, ADMISSION_STATUSES, type Admission, type AdmissionStatus } from "@/lib/eduvest/admissions-mock";
 import { useLanguage } from "@/hooks/use-language";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { getAllWorkspaces, getLevels } from "@/lib/eduvest/academic-levels";
 import { cn } from "@/lib/utils";
 
