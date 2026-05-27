@@ -23,12 +23,27 @@ function DigitalIdPage() {
   const { state } = useOnboarding();
   const { workspace } = useWorkspace();
   const { lang } = useLanguage();
+  const isAll = workspace === "All School";
+  const lockedWs = isAll ? null : workspace;
+
   const [tab, setTab] = useState<"students" | "teachers">("students");
-  const [selectedWs, setSelectedWs] = useState<string>(workspace === "All School" ? "" : workspace);
+  const [pickedWs, setPickedWs] = useState<string>("");
   const [selectedLevel, setSelectedLevel] = useState<string>("");
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(TEACHERS[0]);
+
+  const studentsScope = useMemo(
+    () => (lockedWs ? STUDENTS.filter((s) => s.workspace === lockedWs) : STUDENTS),
+    [lockedWs],
+  );
+  const teachersScope = useMemo(
+    () => (lockedWs ? TEACHERS.filter((t) => t.workspace === lockedWs) : TEACHERS),
+    [lockedWs],
+  );
+
+  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(teachersScope[0] ?? null);
   const [previewUri, setPreviewUri] = useState<string | null>(null);
+
+  const selectedWs = lockedWs ?? pickedWs;
 
   const school = {
     name: state.profile.schoolName || "Greenfield School",
@@ -37,12 +52,13 @@ function DigitalIdPage() {
   };
 
   const workspaces = useMemo(() => {
+    if (lockedWs) return [lockedWs];
     const set = new Set<string>();
-    STUDENTS.forEach((s) => set.add(s.workspace));
+    studentsScope.forEach((s) => set.add(s.workspace));
     return Array.from(set);
-  }, []);
+  }, [studentsScope, lockedWs]);
 
-  const classStudents = STUDENTS.filter((s) => (!selectedWs || s.workspace === selectedWs) && (!selectedLevel || s.level === selectedLevel));
+  const classStudents = studentsScope.filter((s) => (!selectedWs || s.workspace === selectedWs) && (!selectedLevel || s.level === selectedLevel));
 
   const buildStudentCard = (s: Student): IdCardData => ({
     name: s.name,
