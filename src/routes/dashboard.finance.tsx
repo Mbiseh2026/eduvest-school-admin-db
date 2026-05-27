@@ -78,7 +78,7 @@ function FinancePage() {
         <StatCard label="Total invoiced" value={`XAF ${totals.total.toLocaleString()}`} hint="Term to date" icon={PiggyBank} tone="primary" />
         <StatCard label="Paid" value={`XAF ${totals.paid.toLocaleString()}`} hint={`${Math.round((totals.paid / Math.max(totals.total, 1)) * 100)}% collected`} icon={Receipt} tone="navy" />
         <StatCard label="Balance" value={`XAF ${totals.balance.toLocaleString()}`} hint="Outstanding" icon={Wallet} tone="warning" />
-        <StatCard label="Transactions" value={TRANSACTIONS.length} hint="This month" icon={TrendingUp} />
+        <StatCard label="Transactions" value={txAll.length} hint="This month" icon={TrendingUp} />
       </div>
 
       <Tabs defaultValue="transactions">
