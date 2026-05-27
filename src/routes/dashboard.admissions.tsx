@@ -102,7 +102,7 @@ function AdmissionsPage() {
         </TabsContent>
       </Tabs>
 
-      {showNew && <NewAdmissionDialog onClose={() => setShowNew(false)} onCreate={(a) => { setList((p) => [a, ...p]); setShowNew(false); }} />}
+      {showNew && <NewAdmissionDialog defaultWorkspace={isAll ? "Primary" : workspace} lockWorkspace={!isAll} onClose={() => setShowNew(false)} onCreate={(a) => { setAllList((p) => [a, ...p]); setShowNew(false); }} />}
     </div>
   );
 }
