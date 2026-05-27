@@ -41,6 +41,7 @@ export type Teacher = {
   department: string;
   position: string;
   phone: string;
+  workspace: string;
   attendance: number;
   payroll: string;
   monthlyHours: number;
