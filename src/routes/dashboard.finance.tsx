@@ -65,7 +65,7 @@ function FinancePage() {
     <div className="space-y-6">
       <PageHeader
         title="Finance"
-        description="Lightweight view — totals, balances and class revenue. Payment APIs ship later."
+        description={isAll ? "All workspaces — totals, balances and class revenue." : `${workspace} only — totals, balances and class revenue.`}
         actions={
           <>
             <Button variant="outline" size="sm">Export</Button>
