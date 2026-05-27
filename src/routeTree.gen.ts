@@ -38,6 +38,7 @@ import { Route as DashboardExpenditureRouteImport } from './routes/dashboard.exp
 import { Route as DashboardDigitalIdRouteImport } from './routes/dashboard.digital-id'
 import { Route as DashboardAttendanceRouteImport } from './routes/dashboard.attendance'
 import { Route as DashboardAiRouteImport } from './routes/dashboard.ai'
+import { Route as DashboardAdmissionsRouteImport } from './routes/dashboard.admissions'
 
 const WorkspaceRoute = WorkspaceRouteImport.update({
   id: '/workspace',
@@ -184,6 +185,11 @@ const DashboardAiRoute = DashboardAiRouteImport.update({
   path: '/ai',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAdmissionsRoute = DashboardAdmissionsRouteImport.update({
+  id: '/admissions',
+  path: '/admissions',
+  getParentRoute: () => DashboardRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -200,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verify': typeof VerifyRoute
   '/workspace': typeof WorkspaceRoute
+  '/dashboard/admissions': typeof DashboardAdmissionsRoute
   '/dashboard/ai': typeof DashboardAiRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/digital-id': typeof DashboardDigitalIdRoute
@@ -230,6 +237,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verify': typeof VerifyRoute
   '/workspace': typeof WorkspaceRoute
+  '/dashboard/admissions': typeof DashboardAdmissionsRoute
   '/dashboard/ai': typeof DashboardAiRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/digital-id': typeof DashboardDigitalIdRoute
@@ -262,6 +270,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verify': typeof VerifyRoute
   '/workspace': typeof WorkspaceRoute
+  '/dashboard/admissions': typeof DashboardAdmissionsRoute
   '/dashboard/ai': typeof DashboardAiRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/digital-id': typeof DashboardDigitalIdRoute
@@ -295,6 +304,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/verify'
     | '/workspace'
+    | '/dashboard/admissions'
     | '/dashboard/ai'
     | '/dashboard/attendance'
     | '/dashboard/digital-id'
@@ -325,6 +335,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/verify'
     | '/workspace'
+    | '/dashboard/admissions'
     | '/dashboard/ai'
     | '/dashboard/attendance'
     | '/dashboard/digital-id'
@@ -356,6 +367,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/verify'
     | '/workspace'
+    | '/dashboard/admissions'
     | '/dashboard/ai'
     | '/dashboard/attendance'
     | '/dashboard/digital-id'
@@ -595,10 +607,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAiRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/admissions': {
+      id: '/dashboard/admissions'
+      path: '/admissions'
+      fullPath: '/dashboard/admissions'
+      preLoaderRoute: typeof DashboardAdmissionsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
 
 interface DashboardRouteChildren {
+  DashboardAdmissionsRoute: typeof DashboardAdmissionsRoute
   DashboardAiRoute: typeof DashboardAiRoute
   DashboardAttendanceRoute: typeof DashboardAttendanceRoute
   DashboardDigitalIdRoute: typeof DashboardDigitalIdRoute
@@ -617,6 +637,7 @@ interface DashboardRouteChildren {
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAdmissionsRoute: DashboardAdmissionsRoute,
   DashboardAiRoute: DashboardAiRoute,
   DashboardAttendanceRoute: DashboardAttendanceRoute,
   DashboardDigitalIdRoute: DashboardDigitalIdRoute,
