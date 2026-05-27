@@ -148,13 +148,13 @@ function AdmissionTable({ rows, onUpdate }: { rows: Admission[]; onUpdate: (id: 
   );
 }
 
-function NewAdmissionDialog({ onClose, onCreate }: { onClose: () => void; onCreate: (a: Admission) => void }) {
+function NewAdmissionDialog({ onClose, onCreate, defaultWorkspace = "Primary", lockWorkspace = false }: { onClose: () => void; onCreate: (a: Admission) => void; defaultWorkspace?: string; lockWorkspace?: boolean }) {
   const { lang } = useLanguage();
   const [studentName, setStudentName] = useState("");
   const [parentName, setParentName] = useState("");
   const [parentPhone, setParentPhone] = useState("");
   const [parentEmail, setParentEmail] = useState("");
-  const [workspace, setWs] = useState("Primary");
+  const [workspace, setWs] = useState(defaultWorkspace);
   const [classPref, setClassPref] = useState("");
   const [feePaid, setFeePaid] = useState(false);
   const [note, setNote] = useState("");
@@ -174,16 +174,19 @@ function NewAdmissionDialog({ onClose, onCreate }: { onClose: () => void; onCrea
       <DialogContent>
         <DialogHeader>
           <DialogTitle>New application</DialogTitle>
-          <DialogDescription>Light intake form. Backend processing comes later.</DialogDescription>
+          <DialogDescription>{lockWorkspace ? `Workspace: ${workspace}` : "Light intake form. Backend processing comes later."}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3 sm:grid-cols-2">
           <FieldInput label="Student name" value={studentName} onChange={setStudentName} />
           <FieldInput label="Parent name" value={parentName} onChange={setParentName} />
           <FieldInput label="Parent phone" value={parentPhone} onChange={setParentPhone} />
           <FieldInput label="Parent email" value={parentEmail} onChange={setParentEmail} />
-          <FieldSelect label="Workspace" value={workspace} options={getAllWorkspaces()} onChange={(v) => { setWs(v); setClassPref(""); }} />
+          {!lockWorkspace && (
+            <FieldSelect label="Workspace" value={workspace} options={getAllWorkspaces()} onChange={(v) => { setWs(v); setClassPref(""); }} />
+          )}
           <FieldSelect label="Class preference" value={classPref} options={getLevels(workspace, lang)} onChange={setClassPref} />
         </div>
+
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={feePaid} onChange={(e) => setFeePaid(e.target.checked)} />
           Admission fee received
