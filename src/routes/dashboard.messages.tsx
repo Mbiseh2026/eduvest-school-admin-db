@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MESSAGES, MESSAGE_TEMPLATES, PARENT_THREADS, PARENTS } from "@/lib/eduvest/dashboard-mock";
 import { useLanguage } from "@/hooks/use-language";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { getAllWorkspaces, getLevels } from "@/lib/eduvest/academic-levels";
 import { cn } from "@/lib/utils";
 
@@ -20,13 +21,22 @@ type Recipient = "Parents" | "Students" | "Both";
 
 function MessagesPage() {
   const { lang } = useLanguage();
-  const [scope, setScope] = useState<Scope>("Whole school");
-  const [workspace, setWorkspaceSel] = useState<string>("");
+  const { workspace: currentWs } = useWorkspace();
+  const isAll = currentWs === "All School";
+  const lockedWs = isAll ? null : currentWs;
+
+  const [scope, setScope] = useState<Scope>(lockedWs ? "Workspace" : "Whole school");
+  const [workspace, setWorkspaceSel] = useState<string>(lockedWs ?? "");
   const [level, setLevel] = useState<string>("");
   const [recipient, setRecipient] = useState<Recipient>("Parents");
   const [individual, setIndividual] = useState<string>("");
   const [channel, setChannel] = useState<Channel>("SMS");
   const [body, setBody] = useState("");
+
+  const wsOptions = lockedWs ? [lockedWs] : getAllWorkspaces();
+  const scopeOptions: Scope[] = lockedWs ? ["Workspace", "Class", "Individual"] : ["Whole school", "Workspace", "Class", "Individual"];
+  const parentOptions = lockedWs ? PARENTS.filter((p) => p.workspace === lockedWs) : PARENTS;
+  const historyRows = lockedWs ? MESSAGES.filter((m) => m.audience.includes(lockedWs) || m.audience === "Whole school") : MESSAGES;
 
   const target = useMemo(() => {
     if (scope === "Whole school") return "Whole school";
