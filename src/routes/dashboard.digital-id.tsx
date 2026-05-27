@@ -10,7 +10,7 @@ import { generateQrToken } from "@/lib/eduvest/finance-mock";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useLanguage } from "@/hooks/use-language";
-import { getAllWorkspaces, getLevels } from "@/lib/eduvest/academic-levels";
+import { getLevels } from "@/lib/eduvest/academic-levels";
 import { downloadIdCard, printIdCard, previewIdCard, type IdCardData } from "@/lib/eduvest/print-pdf";
 import { cn } from "@/lib/utils";
 
