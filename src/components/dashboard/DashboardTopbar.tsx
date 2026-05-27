@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Bell, Search, Menu, Globe, LogOut, User, ChevronDown, Check, GraduationCap, Users, UserCog, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,18 +32,30 @@ export function DashboardTopbar({ onMenu }: { onMenu: () => void }) {
   const { state } = useOnboarding();
   const { lang, setLang } = useLanguage();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  const isAll = workspace === "All School";
+  const lockedWs = isAll ? null : workspace;
 
   const workspaces = state.profile.schoolTypes.length
     ? [...state.profile.schoolTypes, "All School"]
     : ["Primary", "Secondary", "All School"];
 
-  const initials = user?.fullName?.slice(0, 2).toUpperCase() || "AD";
+  // Avoid hydration mismatch — user comes from localStorage on client only.
+  const initials = mounted ? (user?.fullName?.slice(0, 2).toUpperCase() || "AD") : "AD";
+
+  const students = lockedWs ? STUDENTS.filter((s) => s.workspace === lockedWs) : STUDENTS;
+  const parents = lockedWs ? PARENTS.filter((p) => p.workspace === lockedWs) : PARENTS;
+  const teachers = lockedWs ? TEACHERS.filter((t) => t.workspace === lockedWs) : TEACHERS;
 
   const classes = useMemo(() => {
     const out: { workspace: string; level: string }[] = [];
-    getAllWorkspaces().forEach((w) => getLevels(w, lang).forEach((l) => out.push({ workspace: w, level: l })));
+    const wsList = lockedWs ? [lockedWs] : getAllWorkspaces();
+    wsList.forEach((w) => getLevels(w, lang).forEach((l) => out.push({ workspace: w, level: l })));
     return out;
-  }, [lang]);
+  }, [lang, lockedWs]);
+
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur-xl">
