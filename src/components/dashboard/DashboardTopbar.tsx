@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Bell, Search, Menu, Globe, LogOut, User, ChevronDown, Check } from "lucide-react";
+import { Bell, Search, Menu, Globe, LogOut, User, ChevronDown, Check, GraduationCap, Users, UserCog, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,12 +10,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { useAuth } from "@/hooks/use-auth";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { useLanguage } from "@/hooks/use-language";
-import { NOTIFICATIONS } from "@/lib/eduvest/dashboard-mock";
-import { cn } from "@/lib/utils";
+import { NOTIFICATIONS, STUDENTS, PARENTS, TEACHERS } from "@/lib/eduvest/dashboard-mock";
+import { getAllWorkspaces, getLevels } from "@/lib/eduvest/academic-levels";
 
 export function DashboardTopbar({ onMenu }: { onMenu: () => void }) {
   const navigate = useNavigate();
@@ -31,6 +39,12 @@ export function DashboardTopbar({ onMenu }: { onMenu: () => void }) {
 
   const initials = user?.fullName?.slice(0, 2).toUpperCase() || "AD";
 
+  const classes = useMemo(() => {
+    const out: { workspace: string; level: string }[] = [];
+    getAllWorkspaces().forEach((w) => getLevels(w, lang).forEach((l) => out.push({ workspace: w, level: l })));
+    return out;
+  }, [lang]);
+
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur-xl">
       <div className="flex h-16 items-center gap-2 px-3 sm:gap-3 sm:px-6">
@@ -42,7 +56,6 @@ export function DashboardTopbar({ onMenu }: { onMenu: () => void }) {
           <Menu className="h-5 w-5" />
         </button>
 
-        {/* Workspace switcher */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="gap-2 rounded-full">
@@ -67,24 +80,23 @@ export function DashboardTopbar({ onMenu }: { onMenu: () => void }) {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Search */}
-        <div className="relative ml-auto hidden flex-1 max-w-md md:block">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="search"
-            placeholder="Search students, parents, transactions…"
-            className="h-10 w-full rounded-full border border-border bg-secondary/50 pl-10 pr-4 text-sm outline-none transition-colors focus:border-primary focus:bg-background"
-          />
-        </div>
+        {/* Global search trigger */}
+        <button
+          onClick={() => setSearchOpen(true)}
+          className="relative ml-auto hidden h-10 w-full max-w-md items-center gap-2 rounded-full border border-border bg-secondary/50 px-4 text-left text-sm text-muted-foreground transition-colors hover:bg-secondary md:flex"
+        >
+          <Search className="h-4 w-4" />
+          <span className="flex-1 truncate">Search students, parents, teachers, classes…</span>
+          <kbd className="hidden rounded bg-background px-1.5 py-0.5 text-[10px] font-semibold lg:inline">⌘K</kbd>
+        </button>
         <button
           className="ml-auto inline-flex h-10 w-10 items-center justify-center rounded-full border border-border md:hidden"
           aria-label="Search"
-          onClick={() => setSearchOpen((o) => !o)}
+          onClick={() => setSearchOpen(true)}
         >
           <Search className="h-4 w-4" />
         </button>
 
-        {/* Language */}
         <button
           onClick={() => setLang(lang === "en" ? "fr" : "en")}
           className="hidden sm:inline-flex h-10 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground"
@@ -94,7 +106,6 @@ export function DashboardTopbar({ onMenu }: { onMenu: () => void }) {
           {lang}
         </button>
 
-        {/* Notifications */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
@@ -117,7 +128,6 @@ export function DashboardTopbar({ onMenu }: { onMenu: () => void }) {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* User */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="inline-flex h-10 items-center gap-2 rounded-full border border-border pl-1 pr-3 hover:bg-secondary">
@@ -150,19 +160,48 @@ export function DashboardTopbar({ onMenu }: { onMenu: () => void }) {
         </DropdownMenu>
       </div>
 
-      {searchOpen && (
-        <div className={cn("border-t border-border bg-background p-3 md:hidden")}>
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="search"
-              placeholder="Search…"
-              className="h-10 w-full rounded-full border border-border bg-secondary/50 pl-10 pr-4 text-sm outline-none focus:border-primary focus:bg-background"
-              autoFocus
-            />
-          </div>
-        </div>
-      )}
+      <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
+        <CommandInput placeholder="Search students, parents, teachers, classes…" />
+        <CommandList>
+          <CommandEmpty>No results.</CommandEmpty>
+          <CommandGroup heading="Students">
+            {STUDENTS.map((s) => (
+              <CommandItem key={s.id} value={`${s.name} ${s.studentId} ${s.level}`} onSelect={() => { setSearchOpen(false); navigate({ to: "/dashboard/students" }); }}>
+                <GraduationCap className="mr-2 h-4 w-4 text-muted-foreground" />
+                <span>{s.name}</span>
+                <span className="ml-auto text-xs text-muted-foreground">{s.workspace} · {s.level}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+          <CommandGroup heading="Parents">
+            {PARENTS.map((p) => (
+              <CommandItem key={p.id} value={`${p.name} ${p.children.join(" ")}`} onSelect={() => { setSearchOpen(false); navigate({ to: "/dashboard/parents" }); }}>
+                <Users className="mr-2 h-4 w-4 text-muted-foreground" />
+                <span>{p.name}</span>
+                <span className="ml-auto text-xs text-muted-foreground">{p.children.join(", ")}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+          <CommandGroup heading="Teachers">
+            {TEACHERS.map((t) => (
+              <CommandItem key={t.id} value={`${t.name} ${t.subject}`} onSelect={() => { setSearchOpen(false); navigate({ to: "/dashboard/teachers" }); }}>
+                <UserCog className="mr-2 h-4 w-4 text-muted-foreground" />
+                <span>{t.name}</span>
+                <span className="ml-auto text-xs text-muted-foreground">{t.subject}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+          <CommandGroup heading="Classes">
+            {classes.map((c) => (
+              <CommandItem key={`${c.workspace}-${c.level}`} value={`${c.workspace} ${c.level}`} onSelect={() => { setSearchOpen(false); navigate({ to: "/dashboard/students" }); }}>
+                <Layers className="mr-2 h-4 w-4 text-muted-foreground" />
+                <span>{c.level}</span>
+                <span className="ml-auto text-xs text-muted-foreground">{c.workspace}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
     </header>
   );
 }

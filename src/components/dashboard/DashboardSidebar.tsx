@@ -48,7 +48,16 @@ export const NAV_ITEMS: NavItem[] = [
       { to: "/dashboard/expenditure", label: "Expenditure" },
     ],
   },
-  { to: "/dashboard/students", label: "Students", icon: GraduationCap, permission: "students.view" },
+  {
+    to: "/dashboard/students",
+    label: "Students",
+    icon: GraduationCap,
+    permission: "students.view",
+    children: [
+      { to: "/dashboard/students", label: "Student list" },
+      { to: "/dashboard/admissions", label: "Admissions" },
+    ],
+  },
   { to: "/dashboard/parents", label: "Parents", icon: Users, permission: "parents.view" },
   {
     to: "/dashboard/teachers",

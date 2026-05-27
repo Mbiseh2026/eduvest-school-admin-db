@@ -14,7 +14,7 @@ function TeachersPage() {
     <div className="space-y-6">
       <PageHeader
         title="Teachers & HR"
-        description="Lightweight HR — staff records, attendance and payroll placeholders."
+        description="Lightweight HR — staff records, monthly hours, attendance and payroll."
         actions={<Button variant="hero" size="sm"><Plus className="h-4 w-4" /> Add teacher</Button>}
       />
 
@@ -26,8 +26,10 @@ function TeachersPage() {
               <th className="px-4 py-3 text-left font-medium">Subject</th>
               <th className="px-4 py-3 text-left font-medium">Department</th>
               <th className="px-4 py-3 text-left font-medium">Phone</th>
-              <th className="px-4 py-3 text-left font-medium">Attendance</th>
-              <th className="px-4 py-3 text-left font-medium">Payroll</th>
+              <th className="px-4 py-3 text-right font-medium">Monthly hours</th>
+              <th className="px-4 py-3 text-right font-medium">Hours taught</th>
+              <th className="px-4 py-3 text-right font-medium">Attendance hrs</th>
+              <th className="px-4 py-3 text-right font-medium">Payroll</th>
             </tr>
           </thead>
           <tbody>
@@ -37,8 +39,10 @@ function TeachersPage() {
                 <td className="px-4 py-3">{t.subject}</td>
                 <td className="px-4 py-3 text-muted-foreground">{t.department}</td>
                 <td className="px-4 py-3 text-muted-foreground">{t.phone}</td>
-                <td className="px-4 py-3">{t.attendance}%</td>
-                <td className="px-4 py-3 font-semibold">{t.payroll}</td>
+                <td className="px-4 py-3 text-right">{t.monthlyHours}</td>
+                <td className="px-4 py-3 text-right">{t.hoursTaught}</td>
+                <td className="px-4 py-3 text-right">{t.attendanceHours}</td>
+                <td className="px-4 py-3 text-right font-semibold">{t.payroll}</td>
               </tr>
             ))}
           </tbody>

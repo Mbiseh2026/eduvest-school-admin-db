@@ -66,8 +66,8 @@ function DashboardHome() {
                   <p className="truncate text-xs text-muted-foreground">{t.category} · {t.method}</p>
                 </div>
                 <div className="shrink-0 text-right">
-                  <p className="text-sm font-semibold">XAF {t.amount.toLocaleString()}</p>
-                  <p className={`text-xs ${t.status === "Paid" ? "text-primary" : t.status === "Pending" ? "text-amber-600" : "text-destructive"}`}>{t.status}</p>
+                  <p className="text-sm font-semibold">XAF {t.paidAmount.toLocaleString()}</p>
+                  <p className={`text-xs ${t.status === "Paid" ? "text-primary" : t.status === "Partial" ? "text-amber-600" : "text-destructive"}`}>{t.status}</p>
                 </div>
               </li>
             ))}
