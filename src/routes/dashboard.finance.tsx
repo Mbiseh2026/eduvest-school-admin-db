@@ -92,7 +92,7 @@ function FinancePage() {
             <div className="flex flex-wrap items-center gap-2 border-b border-border p-3 text-xs">
               <span className="text-muted-foreground">Filter class:</span>
               <button onClick={() => setClassFilter("")} className={cn("rounded-full border px-2.5 py-1", classFilter === "" ? "border-primary text-primary" : "border-border text-muted-foreground")}>All</button>
-              {Array.from(new Set(TRANSACTIONS.map((t) => `${t.workspace}·${t.level}`))).map((c) => (
+              {Array.from(new Set(txAll.map((t) => `${t.workspace}·${t.level}`))).map((c) => (
                 <button key={c} onClick={() => setClassFilter(c)} className={cn("rounded-full border px-2.5 py-1", classFilter === c ? "border-primary text-primary" : "border-border text-muted-foreground")}>{c.replace("·", " · ")}</button>
               ))}
             </div>
