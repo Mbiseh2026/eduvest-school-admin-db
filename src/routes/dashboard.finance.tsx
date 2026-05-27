@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoleGuard } from "@/components/dashboard/RoleGuard";
 import { STUDENTS, TRANSACTIONS, type Transaction } from "@/lib/eduvest/dashboard-mock";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard/finance")({
@@ -24,20 +25,31 @@ function statusCls(s: Transaction["status"]) {
 }
 
 function FinancePage() {
+  const { workspace } = useWorkspace();
+  const isAll = workspace === "All School";
   const [classFilter, setClassFilter] = useState<string>("");
+
+  const txAll = useMemo(
+    () => (isAll ? TRANSACTIONS : TRANSACTIONS.filter((t) => t.workspace === workspace)),
+    [isAll, workspace],
+  );
+  const studentsScope = useMemo(
+    () => (isAll ? STUDENTS : STUDENTS.filter((s) => s.workspace === workspace)),
+    [isAll, workspace],
+  );
 
   const totals = useMemo(() => {
     let total = 0, paid = 0;
-    TRANSACTIONS.forEach((t) => { total += t.totalAmount; paid += t.paidAmount; });
+    txAll.forEach((t) => { total += t.totalAmount; paid += t.paidAmount; });
     return { total, paid, balance: total - paid };
-  }, []);
+  }, [txAll]);
 
-  const filtered = classFilter ? TRANSACTIONS.filter((t) => `${t.workspace}·${t.level}` === classFilter) : TRANSACTIONS;
+  const filtered = classFilter ? txAll.filter((t) => `${t.workspace}·${t.level}` === classFilter) : txAll;
 
-  // Revenue per class from students mock
+  // Revenue per class, scoped to current workspace
   const revenueByClass = useMemo(() => {
     const map = new Map<string, { workspace: string; level: string; count: number; revenue: number; balance: number }>();
-    STUDENTS.forEach((s) => {
+    studentsScope.forEach((s) => {
       const key = `${s.workspace}·${s.level}`;
       const entry = map.get(key) || { workspace: s.workspace, level: s.level, count: 0, revenue: 0, balance: 0 };
       entry.count += 1;
@@ -46,7 +58,8 @@ function FinancePage() {
       map.set(key, entry);
     });
     return Array.from(map.entries()).sort((a, b) => b[1].revenue - a[1].revenue);
-  }, []);
+  }, [studentsScope]);
+
 
   return (
     <div className="space-y-6">
