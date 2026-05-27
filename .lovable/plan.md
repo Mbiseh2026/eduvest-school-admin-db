@@ -1,142 +1,76 @@
-# EduVest School SaaS — MVP Build Plan
+# EduVest MVP Refinement Plan
 
-A clean, modern, mobile-responsive multi-tenant School SaaS frontend. No backend yet — mock data + scalable API placeholders. PWA-ready (manifest + installable; no aggressive service-worker caching in preview).
+Scope: workflow & content refinements only. No redesign. Reuse existing sidebar, topbar, workspace selector, colors, and page shells.
 
-> Note on stack: the project template uses **TanStack Start (React 19 + TanStack Router + Tailwind v4)**, not React 18 + Vite 5 + React Router. I'll deliver the same UX and architecture on this stack — it's the supported foundation here and gives you SSR + file-based routing for free. All other choices (TanStack Query, shadcn/ui, Lucide, Montserrat, EduVest tokens) are honored as-is.
+## 1. Academic levels per workspace (foundation)
+New file `src/lib/eduvest/academic-levels.ts`:
+- `LEVELS_BY_WORKSPACE: Record<Workspace, { en: string[]; fr: string[] }>` covering Nursery, Primary, Secondary, Higher Institute, University, Pre-Nursery, Higher Education (generic levels for the three flexible tiers).
+- Helper `getLevels(workspace, lang)` returning the active list. Reads language from existing `use-language` hook; falls back to English.
+- All downstream modules (students, parents, messaging, digital ID, finance class revenue) read from this helper — single source of truth, easy to extend.
 
----
+## 2. Mock data refresh
+Update `src/lib/eduvest/dashboard-mock.ts`:
+- Add `workspace` + `level` fields to each student (distribute across realistic levels).
+- Add `workspace` + `level` to each parent (derived from child).
+- Add `totalFees`, `paidFees` to students; derive `balance` + status.
+- Keep teachers as-is plus `monthlyHours`, `hoursTaught`, `attendanceHours`.
 
-## 1. Design System
+## 3. Students module
+Rewrite `src/routes/dashboard.students.tsx`:
+- Three-pane drill-down on the same page: Workspace tabs (respects current workspace selector) → Level list (cards) → Student list (table).
+- Row click opens a `StudentProfileDialog` (new component) showing photo, full name, ID, workspace, class, parent/guardian, contacts, fees breakdown, registration status, attendance %, digital ID status.
+- Print actions (alphabetical / by fees / by registration / by class) using existing pdf util pattern (lightweight `jsPDF` already in deps via payslip).
+- CSV import dialog updated to accept new columns (workspace, class/level, parent, guardian, contacts, fees, student number, registration status). Parse client-side only; mock append.
 
-Update `src/styles.css`:
-- Brand tokens in `oklch`: `--primary` = EduVest Green `#16A34A`, `--secondary`/`--accent` = Navy `#1E3A8A`, soft neutrals, success/warning/destructive.
-- Add `--gradient-hero`, `--gradient-brand`, `--shadow-soft`, `--shadow-elevated`, `--radius` = 1rem.
-- Load **Montserrat** via Google Fonts in `__root.tsx` head; set as default font.
-- Dark mode tokens included but not exposed in UI (per instructions, no theme toggle).
+## 4. Parents module
+Rewrite `src/routes/dashboard.parents.tsx` with the same Workspace → Class → Parents drill-down. Row click → parent detail dialog with children, contacts, "Message" button (deep-link to messaging compose with audience preset).
 
-Tailwind utilities driven entirely by semantic tokens — no raw hex in components.
+## 5. Global search
+Enhance `src/components/dashboard/DashboardTopbar.tsx`:
+- Replace the static search input with a popover-style command box (reuse `cmdk`/`command.tsx` already present).
+- Indexes students, parents, teachers, classes (from academic-levels helper). Click result → navigates to relevant route with `?focus=` query param.
 
----
+## 6. Finance refinement
+- `dashboard.finance.tsx`: extend the transactions table with Total / Paid / Balance / Status columns, colored status pills (Paid / Partial / Outstanding).
+- Add "Revenue by class" card list — aggregates from updated students mock (students count × paid). Skip silently if workspace has no matching levels.
+- No tax, no engine.
 
-## 2. Routes (file-based)
+## 7. Messaging refinement
+Rewrite `src/routes/dashboard.messages.tsx`:
+- Tabs: Compose, Templates, History, Strategy, Classes.
+- Compose form: cascading audience selector — Scope (Whole school / Workspace / Class / Individual) → Workspace → Class → Recipient role (Students / Parents / Both) → optional individual.
+- Channel chips: SMS, Email, WhatsApp (placeholder, disabled badge "Coming soon").
+- Each message in History shows resolved target string (e.g. "Secondary › Form 2 › Parents").
+- Add a simple "Parent thread" placeholder list (mock conversation).
 
-```
-src/routes/
-  __root.tsx                  shell + fonts + QueryClientProvider
-  index.tsx                   landing page
-  about.tsx                   about EduVest
-  features.tsx                products & features
-  pricing.tsx
-  ai.tsx                      AI positioning page
-  contact.tsx
-  login.tsx
-  signup.tsx
-  forgot-password.tsx
-  verify.tsx                  verification placeholder
-  onboarding.tsx              wizard shell (9 steps, in-page stepper)
-  workspace.tsx               post-onboarding workspace selector
-```
+## 8. Admissions module (new)
+- New route `src/routes/dashboard.admissions.tsx` with tabs: Applications, Review, Status, Decision.
+- New mock file `src/lib/eduvest/admissions-mock.ts`.
+- "New application" dialog: student + parent + workspace + class preference + contacts + optional admission fee.
+- Add to sidebar under Students area, gated by `students.view` permission.
 
-Each public route gets its own `head()` metadata (title, description, og). Sitemap + robots added.
+## 9. Digital ID refinement
+Rewrite `src/routes/dashboard.digital-id.tsx`:
+- Drill-down Workspace → Class → Student/Teacher.
+- Card preview shows BOTH sides (front: photo, logo, QR, name, ID number; back: emergency contact, school contact, ID details, terms).
+- Wire Preview (modal), Download (PNG via `html-to-image` if available, else SVG fallback), Print (window.print on hidden iframe). Provide one always-working "Sample" download.
 
----
+## 10. Payroll + teacher hours
+- `dashboard.teachers.tsx`: add columns Monthly hours, Hours taught, Attendance hours.
+- `dashboard.payroll.tsx`: add hours fields (monthly, taught) on create dialog, editable; surface them on table and in payslip.
+- `src/lib/eduvest/payslip-pdf.ts`: redesign layout — header band with school logo + name, employee block (ID, name, position, payment type), hours table, earnings/deductions table, large Net Pay box, period + reference, two signature lines (Employee / Administrator), footer note "Generated by EduVest". African school payroll style: clean ruled tables, no tax sections.
 
-## 3. Landing Page
+## 11. Sidebar additions
+Add Admissions link under Students group in `DashboardSidebar.tsx`. Keep order, colors, structure.
 
-Single scroll-rich landing built from sections (each its own component in `src/components/landing/`):
-- `Hero` — headline, sub, dual CTA (Start free / Book demo), generated dashboard mockup image, trust strip.
-- `About` — mission, vision, why EduVest.
-- `Features` — 10 module cards (Admissions, Attendance, Digital ID, Payroll, Finance, Timetable, AI, HR, Communication, Reports) with Lucide icons.
-- `Customers` — 4 segments (Schools, Teachers, Parents, Students).
-- `AI` — informational only; explains General App (parents/teachers/students) vs Dashboard (authorities, analytics, finance trends); mentions future offline AI.
-- `Pricing` — Starter / Standard / Enterprise placeholder cards.
-- `Testimonials` — 3 placeholder cards.
-- `FAQ` — shadcn accordion, 6 questions.
-- `Footer` — contact, socials, policies, demo CTA, language switcher (EN/FR, stub).
+## Technical notes
+- All data still mock + localStorage; no backend.
+- Reuse existing UI primitives (`Dialog`, `Tabs`, `Command`, `Button`, `Input`). No new dependencies unless `html-to-image` for ID download — fallback to SVG/print if install fails.
+- Keep all role gating via existing `RoleGuard` + `useRole`.
+- Respect `useLanguage` for English/French level labels.
+- No changes to landing pages, auth, onboarding, settings layout.
 
-Shared `SiteHeader` with nav + Login/Get Started.
-
----
-
-## 4. Auth
-
-Modern split-screen layout (brand panel + form):
-- `login.tsx`, `signup.tsx`, `forgot-password.tsx`, `verify.tsx`.
-- Client-side mock auth via `useAuth` hook backed by `localStorage` (placeholder; swap for real backend later).
-- Signup → redirects to `/onboarding` (NOT dashboard).
-- Login (when onboarded) → `/workspace`; (when not) → `/onboarding`.
-
----
-
-## 5. Onboarding Wizard (`/onboarding`)
-
-Single route with left vertical stepper (desktop) / top progress bar (mobile). State persisted to `localStorage` so refresh resumes.
-
-Steps:
-1. **Create account** — confirms identity (prefilled from signup).
-2. **School profile** — name, address, country, phone, email, motto, website, logo upload (preview), principal name, **school type multi-select** (Prenursery, Nursery, Primary, Secondary, High School, High Institute, University).
-3. **Academic structure** — define Sections, Campuses, Streams, Levels (dynamic add/remove chips).
-4. **Branding** — logo, primary/secondary color pickers, motto, website, social links, letterhead placeholder upload.
-5. **Students + parents** — import placeholder (CSV upload UI, no parsing) + manual count inputs.
-6. **Teachers + HR** — same pattern.
-7. **Timetable + reports** — academic year, term system, report card template picker (placeholder).
-8. **Finance setup** — currency (default XAF), fee categories, payment methods toggles.
-9. **Launch workspace** — summary + "Launch" CTA → marks onboarded, routes to `/workspace`.
-
-Language selector (EN/FR) visible in wizard header — single architecture, just swaps copy via a tiny i18n dict (EN complete; FR for key labels; expandable).
-
----
-
-## 6. Workspace Selector (`/workspace`)
-
-Shown after onboarding and on login. Cards generated from the school's selected types + an "All School" option. Selecting a workspace stores choice and shows a "Dashboard coming soon" placeholder card (dashboard itself is out of scope per spec: "Only onboarding and architecture for now").
-
----
-
-## 7. State & Data
-
-- `src/hooks/useAuth.ts` — mock auth (localStorage).
-- `src/hooks/useOnboarding.ts` — wizard state + persistence.
-- `src/lib/mock/` — placeholder data (modules, pricing, FAQ, testimonials).
-- `src/lib/api/` — typed stub functions returning Promises so swapping to real fetch later is trivial.
-- TanStack Query already wired in root; used for any async stubs.
-
----
-
-## 8. PWA-ready
-
-- `public/manifest.webmanifest` with EduVest icons (generated), `display: standalone`, theme color = brand green.
-- Manifest link added in `__root.tsx` head.
-- **No service worker** (per Lovable PWA guidance — service workers break preview). Installable + branded; offline can be added post-MVP.
-
----
-
-## 9. Components (shadcn-based)
-
-Reuse existing shadcn primitives (Button, Card, Input, Label, Select, Tabs, Accordion, Progress, Dialog, Sheet, Badge, Avatar). Add brand variants via `cva` where needed (e.g. `Button variant="hero"`, `variant="brand"`).
-
----
-
-## 10. Assets
-
-Generate with imagegen:
-- Hero dashboard mockup (premium SaaS preview).
-- Abstract brand pattern for auth split-panel.
-- Open Graph image.
-- App icons (192, 512) for manifest.
-
----
-
-## 11. Out of scope (explicitly deferred)
-
-- Actual dashboard screens (attendance grids, finance ledgers, etc.).
-- Real backend / Lovable Cloud — will enable when you're ready.
-- Real i18n library — using a lightweight dict now; swap to `i18next` later.
-- Service worker / offline mode.
-- Real CSV parsing, file storage, payments.
-
----
-
-## Deliverable
-
-A polished, navigable EduVest experience: landing → signup → 9-step onboarding → workspace selector, with EduVest brand identity throughout and architecture ready for backend + dashboard modules.
+## Out of scope (per prompt)
+- New visual design, color changes, layout rework.
+- Real API integrations (payments, WhatsApp, OAuth).
+- Tax/accounting engine, advanced reporting.
