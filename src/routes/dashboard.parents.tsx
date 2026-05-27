@@ -19,23 +19,34 @@ function ParentsPage() {
   const navigate = useNavigate();
   const { workspace } = useWorkspace();
   const { lang } = useLanguage();
-  const [selectedWs, setSelectedWs] = useState<string>(workspace === "All School" ? "" : workspace);
+
+  const isAll = workspace === "All School";
+  const lockedWs = isAll ? null : workspace;
+
+  const [pickedWs, setPickedWs] = useState<string>("");
   const [selectedLevel, setSelectedLevel] = useState<string>("");
   const [selected, setSelected] = useState<Parent | null>(null);
 
+  const selectedWs = lockedWs ?? pickedWs;
+
+  const scoped = useMemo(
+    () => (lockedWs ? PARENTS.filter((p) => p.workspace === lockedWs) : PARENTS),
+    [lockedWs],
+  );
+
   const workspaces = useMemo(() => {
+    if (lockedWs) return [lockedWs];
     const ws = new Set<string>();
-    PARENTS.forEach((p) => ws.add(p.workspace));
-    const list = workspace === "All School" ? Array.from(ws) : [workspace];
-    return list.filter((w) => getAllWorkspaces().includes(w) || w);
-  }, [workspace]);
+    scoped.forEach((p) => ws.add(p.workspace));
+    return Array.from(ws).filter((w) => getAllWorkspaces().includes(w) || w);
+  }, [scoped, lockedWs]);
 
   const rows = useMemo(() => {
-    let r = PARENTS;
+    let r = scoped;
     if (selectedWs) r = r.filter((p) => p.workspace === selectedWs);
     if (selectedLevel) r = r.filter((p) => p.level === selectedLevel);
     return r;
-  }, [selectedWs, selectedLevel]);
+  }, [scoped, selectedWs, selectedLevel]);
 
   return (
     <div className="space-y-6">
@@ -46,23 +57,27 @@ function ParentsPage() {
             ? `${rows.length} parent${rows.length === 1 ? "" : "s"} in ${selectedWs} · ${selectedLevel}`
             : selectedWs
               ? `${selectedWs} — pick a class.`
-              : `${PARENTS.length} parent contacts.`
+              : `${scoped.length} parent contacts.`
         }
         actions={<Button variant="hero" size="sm"><Plus className="h-4 w-4" /> Add parent</Button>}
       />
 
       <div className="flex flex-wrap items-center gap-2 text-sm">
-        <button onClick={() => { setSelectedWs(""); setSelectedLevel(""); }} className="text-muted-foreground hover:text-foreground">All workspaces</button>
-        {selectedWs && (<><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" /><button onClick={() => setSelectedLevel("")} className={cn("hover:text-foreground", selectedLevel ? "text-muted-foreground" : "font-semibold text-foreground")}>{selectedWs}</button></>)}
+        {isAll ? (
+          <button onClick={() => { setPickedWs(""); setSelectedLevel(""); }} className="text-muted-foreground hover:text-foreground">All workspaces</button>
+        ) : (
+          <span className="font-semibold text-foreground">{workspace}</span>
+        )}
+        {isAll && selectedWs && (<><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" /><button onClick={() => setSelectedLevel("")} className={cn("hover:text-foreground", selectedLevel ? "text-muted-foreground" : "font-semibold text-foreground")}>{selectedWs}</button></>)}
         {selectedLevel && (<><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" /><span className="font-semibold">{selectedLevel}</span></>)}
       </div>
 
-      {!selectedWs && (
+      {isAll && !selectedWs && (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {workspaces.map((w) => {
-            const count = PARENTS.filter((p) => p.workspace === w).length;
+            const count = scoped.filter((p) => p.workspace === w).length;
             return (
-              <button key={w} onClick={() => setSelectedWs(w)} className="rounded-2xl border border-border bg-card p-5 text-left hover:border-primary">
+              <button key={w} onClick={() => setPickedWs(w)} className="rounded-2xl border border-border bg-card p-5 text-left hover:border-primary">
                 <p className="text-base font-semibold">{w}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{count} parent{count === 1 ? "" : "s"}</p>
               </button>
@@ -73,10 +88,12 @@ function ParentsPage() {
 
       {selectedWs && !selectedLevel && (
         <div>
-          <Button variant="ghost" size="sm" onClick={() => setSelectedWs("")} className="mb-3"><ArrowLeft className="h-3.5 w-3.5" /> All workspaces</Button>
+          {isAll && (
+            <Button variant="ghost" size="sm" onClick={() => setPickedWs("")} className="mb-3"><ArrowLeft className="h-3.5 w-3.5" /> All workspaces</Button>
+          )}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {getLevels(selectedWs, lang).map((lvl) => {
-              const count = PARENTS.filter((p) => p.workspace === selectedWs && p.level === lvl).length;
+              const count = scoped.filter((p) => p.workspace === selectedWs && p.level === lvl).length;
               return (
                 <button key={lvl} onClick={() => setSelectedLevel(lvl)} className="rounded-2xl border border-border bg-card p-5 text-left hover:border-primary">
                   <p className="text-base font-semibold">{lvl}</p>
