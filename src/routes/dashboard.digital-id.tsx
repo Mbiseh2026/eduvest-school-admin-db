@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Download, Printer, QrCode, GraduationCap, Eye, ChevronRight, ArrowLeft, X } from "lucide-react";
+import { Download, Printer, QrCode, GraduationCap, Eye, X } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
