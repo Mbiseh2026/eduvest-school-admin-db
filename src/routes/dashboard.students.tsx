@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Plus, Search, Printer, Upload, ChevronRight, ArrowLeft, IdCard as IdCardIcon, Phone, Mail } from "lucide-react";
+import { Plus, Search, Printer, Upload, ChevronRight, IdCard as IdCardIcon, Phone, Mail } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
@@ -141,113 +141,88 @@ function StudentsPage() {
         ) : (
           <span className="font-semibold text-foreground">{workspace}</span>
         )}
-        {isAll && selectedWs && (<><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" /><button onClick={() => setSelectedLevel("")} className={cn("hover:text-foreground", selectedLevel ? "text-muted-foreground" : "font-semibold text-foreground")}>{selectedWs}</button></>)}
+        {selectedWs && (<><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" /><button onClick={() => setSelectedLevel("")} className={cn("hover:text-foreground", selectedLevel ? "text-muted-foreground" : "font-semibold text-foreground")}>{selectedWs}</button></>)}
         {selectedLevel && (<><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" /><span className="font-semibold">{selectedLevel}</span></>)}
       </div>
 
-      {/* WORKSPACE PICKER — only in All School */}
-      {isAll && !selectedWs && (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {workspaces.map((w) => {
-            const count = scoped.filter((s) => s.workspace === w).length;
-            return (
-              <button
-                key={w}
-                onClick={() => setPickedWs(w)}
-                className="rounded-2xl border border-border bg-card p-5 text-left hover:border-primary"
-              >
-                <p className="text-base font-semibold">{w}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{count} students · {getLevels(w, lang).length} levels</p>
-              </button>
-            );
-          })}
-        </div>
-      )}
+      {/* Filter chips */}
+      <div className="space-y-2">
+        {isAll && (
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-muted-foreground">Workspace:</span>
+            <button onClick={() => { setPickedWs(""); setSelectedLevel(""); }} className={cn("rounded-full border px-2.5 py-1", !pickedWs ? "border-primary text-primary" : "border-border text-muted-foreground")}>All</button>
+            {workspaces.map((w) => (
+              <button key={w} onClick={() => { setPickedWs(w); setSelectedLevel(""); }} className={cn("rounded-full border px-2.5 py-1", pickedWs === w ? "border-primary text-primary" : "border-border text-muted-foreground")}>{w}</button>
+            ))}
+          </div>
+        )}
+        {selectedWs && (
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-muted-foreground">Class:</span>
+            <button onClick={() => setSelectedLevel("")} className={cn("rounded-full border px-2.5 py-1", !selectedLevel ? "border-primary text-primary" : "border-border text-muted-foreground")}>All</button>
+            {getLevels(selectedWs, lang).map((lvl) => (
+              <button key={lvl} onClick={() => setSelectedLevel(lvl)} className={cn("rounded-full border px-2.5 py-1", selectedLevel === lvl ? "border-primary text-primary" : "border-border text-muted-foreground")}>{lvl}</button>
+            ))}
+          </div>
+        )}
+      </div>
 
-      {/* LEVEL PICKER */}
-      {selectedWs && !selectedLevel && (
-        <div>
-          {isAll && (
-            <Button variant="ghost" size="sm" onClick={() => setPickedWs("")} className="mb-3">
-              <ArrowLeft className="h-3.5 w-3.5" /> All workspaces
-            </Button>
-          )}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {getLevels(selectedWs, lang).map((lvl) => {
-              const count = scoped.filter((s) => s.workspace === selectedWs && s.level === lvl).length;
-              return (
-                <button
-                  key={lvl}
-                  onClick={() => setSelectedLevel(lvl)}
-                  className="rounded-2xl border border-border bg-card p-5 text-left hover:border-primary"
-                >
-                  <p className="text-base font-semibold">{lvl}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{count} student{count === 1 ? "" : "s"}</p>
-                </button>
-              );
-            })}
+      {/* STUDENT TABLE — always visible */}
+      <div className="rounded-2xl border border-border bg-card">
+        <div className="flex items-center gap-2 border-b border-border p-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search students…"
+              className="h-9 w-full rounded-full border border-border bg-secondary/40 pl-9 pr-4 text-sm outline-none focus:bg-background focus:border-primary"
+            />
           </div>
+          <span className="ml-auto text-xs text-muted-foreground">{filtered.length} student{filtered.length === 1 ? "" : "s"}</span>
         </div>
-      )}
-
-      {/* STUDENT TABLE */}
-      {selectedWs && selectedLevel && (
-        <div className="rounded-2xl border border-border bg-card">
-          <div className="flex items-center gap-2 border-b border-border p-3">
-            <Button variant="ghost" size="sm" onClick={() => setSelectedLevel("")}>
-              <ArrowLeft className="h-3.5 w-3.5" /> Back
-            </Button>
-            <div className="relative flex-1 max-w-sm">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder={`Search ${selectedWs} students…`}
-                className="h-9 w-full rounded-full border border-border bg-secondary/40 pl-9 pr-4 text-sm outline-none focus:bg-background focus:border-primary"
-              />
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-xs uppercase text-muted-foreground">
-                <tr className="border-b border-border">
-                  <th className="px-4 py-3 text-left font-medium">Student</th>
-                  <th className="px-4 py-3 text-left font-medium">ID</th>
-                  <th className="px-4 py-3 text-left font-medium">Parent</th>
-                  <th className="px-4 py-3 text-right font-medium">Total fees</th>
-                  <th className="px-4 py-3 text-right font-medium">Balance</th>
-                  <th className="px-4 py-3 text-left font-medium">Registration</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((s) => {
-                  const bal = s.totalFees - s.paidFees;
-                  return (
-                    <tr key={s.id} onClick={() => setProfile(s)} className="cursor-pointer border-b border-border last:border-0 hover:bg-secondary/40">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <img src={s.photo} alt={s.name} className="h-9 w-9 rounded-full border border-border" />
-                          <span className="font-medium">{s.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 font-mono text-xs">{s.studentId}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{s.parent}</td>
-                      <td className="px-4 py-3 text-right">XAF {s.totalFees.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-right font-semibold">{bal > 0 ? `XAF ${bal.toLocaleString()}` : "—"}</td>
-                      <td className="px-4 py-3">
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${statusBadge(s.registration)}`}>{s.registration}</span>
-                      </td>
-                    </tr>
-                  );
-                })}
-                {filtered.length === 0 && (
-                  <tr><td colSpan={6} className="px-4 py-12 text-center text-sm text-muted-foreground">No students in this class yet.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-xs uppercase text-muted-foreground">
+              <tr className="border-b border-border">
+                <th className="px-4 py-3 text-left font-medium">Student</th>
+                <th className="px-4 py-3 text-left font-medium">ID</th>
+                <th className="px-4 py-3 text-left font-medium">Class</th>
+                <th className="px-4 py-3 text-left font-medium">Parent</th>
+                <th className="px-4 py-3 text-right font-medium">Total fees</th>
+                <th className="px-4 py-3 text-right font-medium">Balance</th>
+                <th className="px-4 py-3 text-left font-medium">Registration</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((s) => {
+                const bal = s.totalFees - s.paidFees;
+                return (
+                  <tr key={s.id} onClick={() => setProfile(s)} className="cursor-pointer border-b border-border last:border-0 hover:bg-secondary/40">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <img src={s.photo} alt={s.name} className="h-9 w-9 rounded-full border border-border" />
+                        <span className="font-medium">{s.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 font-mono text-xs">{s.studentId}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{s.workspace} · {s.level}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{s.parent}</td>
+                    <td className="px-4 py-3 text-right">XAF {s.totalFees.toLocaleString()}</td>
+                    <td className="px-4 py-3 text-right font-semibold">{bal > 0 ? `XAF ${bal.toLocaleString()}` : "—"}</td>
+                    <td className="px-4 py-3">
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${statusBadge(s.registration)}`}>{s.registration}</span>
+                    </td>
+                  </tr>
+                );
+              })}
+              {filtered.length === 0 && (
+                <tr><td colSpan={7} className="px-4 py-12 text-center text-sm text-muted-foreground">No students match the current filters.</td></tr>
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
 
       {profile && <StudentProfileDialog student={profile} onClose={() => setProfile(null)} onMessage={() => navigate({ to: "/dashboard/messages" })} />}
       {showImport && <ImportCsvDialog onClose={() => setShowImport(false)} onImport={(s) => setStudents((prev) => [...s, ...prev])} />}

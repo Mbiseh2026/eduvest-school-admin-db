@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Download, Printer, QrCode, GraduationCap, Eye, ChevronRight, ArrowLeft, X } from "lucide-react";
+import { Download, Printer, QrCode, GraduationCap, Eye, X } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -118,58 +118,40 @@ function DigitalIdPage() {
         </TabsList>
 
         <TabsContent value="students" className="mt-4">
-          <div className="flex flex-wrap items-center gap-2 text-sm mb-3">
-            {isAll ? (
-              <button onClick={() => { setPickedWs(""); setSelectedLevel(""); setSelectedStudent(null); }} className="text-muted-foreground hover:text-foreground">All workspaces</button>
-            ) : (
-              <span className="font-semibold text-foreground">{workspace}</span>
+          <div className="mb-3 space-y-2">
+            {isAll && (
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="text-muted-foreground">Workspace:</span>
+                <button onClick={() => { setPickedWs(""); setSelectedLevel(""); }} className={cn("rounded-full border px-2.5 py-1", !pickedWs ? "border-primary text-primary" : "border-border text-muted-foreground")}>All</button>
+                {workspaces.map((w) => (
+                  <button key={w} onClick={() => { setPickedWs(w); setSelectedLevel(""); }} className={cn("rounded-full border px-2.5 py-1", pickedWs === w ? "border-primary text-primary" : "border-border text-muted-foreground")}>{w}</button>
+                ))}
+              </div>
             )}
-            {isAll && selectedWs && (<><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" /><button onClick={() => { setSelectedLevel(""); setSelectedStudent(null); }} className={cn("hover:text-foreground", selectedLevel ? "text-muted-foreground" : "font-semibold text-foreground")}>{selectedWs}</button></>)}
-            {selectedLevel && (<><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" /><span className="font-semibold">{selectedLevel}</span></>)}
+            {selectedWs && (
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="text-muted-foreground">Class:</span>
+                <button onClick={() => setSelectedLevel("")} className={cn("rounded-full border px-2.5 py-1", !selectedLevel ? "border-primary text-primary" : "border-border text-muted-foreground")}>All</button>
+                {getLevels(selectedWs, lang).map((l) => (
+                  <button key={l} onClick={() => setSelectedLevel(l)} className={cn("rounded-full border px-2.5 py-1", selectedLevel === l ? "border-primary text-primary" : "border-border text-muted-foreground")}>{l}</button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-            <div>
-              {isAll && !selectedWs && (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {workspaces.map((w) => (
-                    <button key={w} onClick={() => setPickedWs(w)} className="rounded-2xl border border-border bg-card p-4 text-left hover:border-primary">
-                      <p className="font-semibold">{w}</p>
-                      <p className="text-xs text-muted-foreground">{studentsScope.filter((s) => s.workspace === w).length} students</p>
-                    </button>
-                  ))}
-                </div>
-              )}
-              {selectedWs && !selectedLevel && (
-                <div>
-                  {isAll && (
-                    <Button variant="ghost" size="sm" onClick={() => setPickedWs("")} className="mb-3"><ArrowLeft className="h-3.5 w-3.5" /> Back</Button>
-                  )}
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {getLevels(selectedWs, lang).map((l) => (
-                      <button key={l} onClick={() => setSelectedLevel(l)} className="rounded-2xl border border-border bg-card p-4 text-left hover:border-primary">
-                        <p className="font-semibold">{l}</p>
-                        <p className="text-xs text-muted-foreground">{studentsScope.filter((s) => s.workspace === selectedWs && s.level === l).length} students</p>
-                      </button>
-                    ))}
+            <div className="grid gap-3 sm:grid-cols-2 self-start">
+              {classStudents.map((s) => (
+                <button key={s.id} onClick={() => setSelectedStudent(s)} className={cn("flex items-center gap-3 rounded-2xl border bg-card p-3 text-left", selectedStudent?.id === s.id ? "border-primary" : "border-border hover:border-primary/40")}>
+                  <img src={s.photo} alt={s.name} className="h-12 w-12 rounded-full border border-border" />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">{s.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">{s.workspace} · {s.level} · {s.studentId}</p>
                   </div>
-                </div>
-              )}
-              {selectedWs && selectedLevel && (
-                <div>
-                  <Button variant="ghost" size="sm" onClick={() => setSelectedLevel("")} className="mb-3"><ArrowLeft className="h-3.5 w-3.5" /> Back</Button>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {classStudents.map((s) => (
-                      <button key={s.id} onClick={() => setSelectedStudent(s)} className={cn("flex items-center gap-3 rounded-2xl border bg-card p-3 text-left", selectedStudent?.id === s.id ? "border-primary" : "border-border hover:border-primary/40")}>
-                        <img src={s.photo} alt={s.name} className="h-12 w-12 rounded-full border border-border" />
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold">{s.name}</p>
-                          <p className="truncate text-xs text-muted-foreground">{s.studentId}</p>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                </button>
+              ))}
+              {classStudents.length === 0 && (
+                <p className="col-span-2 rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">No students match the current filters.</p>
               )}
             </div>
 

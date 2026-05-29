@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Plus, ChevronRight, ArrowLeft, MessageSquare, Phone, Mail } from "lucide-react";
+import { Plus, ChevronRight, MessageSquare, Phone, Mail } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -68,78 +68,63 @@ function ParentsPage() {
         ) : (
           <span className="font-semibold text-foreground">{workspace}</span>
         )}
-        {isAll && selectedWs && (<><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" /><button onClick={() => setSelectedLevel("")} className={cn("hover:text-foreground", selectedLevel ? "text-muted-foreground" : "font-semibold text-foreground")}>{selectedWs}</button></>)}
+        {selectedWs && (<><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" /><button onClick={() => setSelectedLevel("")} className={cn("hover:text-foreground", selectedLevel ? "text-muted-foreground" : "font-semibold text-foreground")}>{selectedWs}</button></>)}
         {selectedLevel && (<><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" /><span className="font-semibold">{selectedLevel}</span></>)}
       </div>
 
-      {isAll && !selectedWs && (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {workspaces.map((w) => {
-            const count = scoped.filter((p) => p.workspace === w).length;
-            return (
-              <button key={w} onClick={() => setPickedWs(w)} className="rounded-2xl border border-border bg-card p-5 text-left hover:border-primary">
-                <p className="text-base font-semibold">{w}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{count} parent{count === 1 ? "" : "s"}</p>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      {selectedWs && !selectedLevel && (
-        <div>
-          {isAll && (
-            <Button variant="ghost" size="sm" onClick={() => setPickedWs("")} className="mb-3"><ArrowLeft className="h-3.5 w-3.5" /> All workspaces</Button>
-          )}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {getLevels(selectedWs, lang).map((lvl) => {
-              const count = scoped.filter((p) => p.workspace === selectedWs && p.level === lvl).length;
-              return (
-                <button key={lvl} onClick={() => setSelectedLevel(lvl)} className="rounded-2xl border border-border bg-card p-5 text-left hover:border-primary">
-                  <p className="text-base font-semibold">{lvl}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{count} parent{count === 1 ? "" : "s"}</p>
-                </button>
-              );
-            })}
+      <div className="space-y-2">
+        {isAll && (
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-muted-foreground">Workspace:</span>
+            <button onClick={() => { setPickedWs(""); setSelectedLevel(""); }} className={cn("rounded-full border px-2.5 py-1", !pickedWs ? "border-primary text-primary" : "border-border text-muted-foreground")}>All</button>
+            {workspaces.map((w) => (
+              <button key={w} onClick={() => { setPickedWs(w); setSelectedLevel(""); }} className={cn("rounded-full border px-2.5 py-1", pickedWs === w ? "border-primary text-primary" : "border-border text-muted-foreground")}>{w}</button>
+            ))}
           </div>
-        </div>
-      )}
-
-      {selectedWs && selectedLevel && (
-        <div className="rounded-2xl border border-border bg-card">
-          <div className="flex items-center gap-2 border-b border-border p-3">
-            <Button variant="ghost" size="sm" onClick={() => setSelectedLevel("")}><ArrowLeft className="h-3.5 w-3.5" /> Back</Button>
-            <span className="text-xs text-muted-foreground">{rows.length} parent{rows.length === 1 ? "" : "s"}</span>
+        )}
+        {selectedWs && (
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-muted-foreground">Class:</span>
+            <button onClick={() => setSelectedLevel("")} className={cn("rounded-full border px-2.5 py-1", !selectedLevel ? "border-primary text-primary" : "border-border text-muted-foreground")}>All</button>
+            {getLevels(selectedWs, lang).map((lvl) => (
+              <button key={lvl} onClick={() => setSelectedLevel(lvl)} className={cn("rounded-full border px-2.5 py-1", selectedLevel === lvl ? "border-primary text-primary" : "border-border text-muted-foreground")}>{lvl}</button>
+            ))}
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-xs uppercase text-muted-foreground">
-                <tr className="border-b border-border">
-                  <th className="px-4 py-3 text-left font-medium">Name</th>
-                  <th className="px-4 py-3 text-left font-medium">Phone</th>
-                  <th className="px-4 py-3 text-left font-medium">Email</th>
-                  <th className="px-4 py-3 text-left font-medium">Children</th>
-                  <th className="px-4 py-3 text-left font-medium">Last message</th>
+        )}
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card">
+        <div className="border-b border-border p-3 text-xs text-muted-foreground">{rows.length} parent{rows.length === 1 ? "" : "s"}</div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-xs uppercase text-muted-foreground">
+              <tr className="border-b border-border">
+                <th className="px-4 py-3 text-left font-medium">Name</th>
+                <th className="px-4 py-3 text-left font-medium">Class</th>
+                <th className="px-4 py-3 text-left font-medium">Phone</th>
+                <th className="px-4 py-3 text-left font-medium">Email</th>
+                <th className="px-4 py-3 text-left font-medium">Children</th>
+                <th className="px-4 py-3 text-left font-medium">Last message</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((p) => (
+                <tr key={p.id} onClick={() => setSelected(p)} className="cursor-pointer border-b border-border last:border-0 hover:bg-secondary/40">
+                  <td className="px-4 py-3 font-medium">{p.name}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{p.workspace} · {p.level}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{p.phone}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{p.email}</td>
+                  <td className="px-4 py-3">{p.children.join(", ")}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{p.lastMessage}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {rows.map((p) => (
-                  <tr key={p.id} onClick={() => setSelected(p)} className="cursor-pointer border-b border-border last:border-0 hover:bg-secondary/40">
-                    <td className="px-4 py-3 font-medium">{p.name}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{p.phone}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{p.email}</td>
-                    <td className="px-4 py-3">{p.children.join(", ")}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{p.lastMessage}</td>
-                  </tr>
-                ))}
-                {rows.length === 0 && (
-                  <tr><td colSpan={5} className="px-4 py-12 text-center text-sm text-muted-foreground">No parents in this class.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+              ))}
+              {rows.length === 0 && (
+                <tr><td colSpan={6} className="px-4 py-12 text-center text-sm text-muted-foreground">No parents match the current filters.</td></tr>
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
 
       {selected && (
         <Dialog open onOpenChange={(o) => !o && setSelected(null)}>
