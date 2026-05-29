@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Plus, Search, Printer, Upload, ChevronRight, ArrowLeft, IdCard as IdCardIcon, Phone, Mail } from "lucide-react";
+import { Plus, Search, Printer, Upload, ChevronRight, IdCard as IdCardIcon, Phone, Mail } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
