@@ -35,6 +35,8 @@ export type Parent = {
   lastMessage: string;
 };
 
+export type AssignedClass = { workspace: string; level: string; division?: string };
+
 export type Teacher = {
   id: string;
   name: string;
@@ -48,6 +50,7 @@ export type Teacher = {
   monthlyHours: number;
   hoursTaught: number;
   attendanceHours: number;
+  assignedClasses?: AssignedClass[];
 };
 
 export type Message = {
@@ -111,11 +114,11 @@ export const PARENTS: Parent[] = [
 ];
 
 export const TEACHERS: Teacher[] = [
-  { id: "t1", name: "Mr. Emeka Obi", subject: "Mathematics", department: "Sciences", position: "Senior Teacher", phone: "+234 803 22 11 01", workspace: "Secondary", attendance: 98, payroll: "XAF 320,000", monthlyHours: 80, hoursTaught: 78, attendanceHours: 76 },
-  { id: "t2", name: "Mme. Aline Foka", subject: "French", department: "Languages", position: "Teacher", phone: "+237 670 22 11 02", workspace: "Primary", attendance: 95, payroll: "XAF 280,000", monthlyHours: 70, hoursTaught: 70, attendanceHours: 68 },
-  { id: "t3", name: "Mr. Samuel Kim", subject: "Physics", department: "Sciences", position: "Lab Teacher", phone: "+237 670 22 11 03", workspace: "Secondary", attendance: 92, payroll: "XAF 310,000", monthlyHours: 60, hoursTaught: 58, attendanceHours: 55 },
-  { id: "t4", name: "Mrs. Lillian Boateng", subject: "History", department: "Humanities", position: "Teacher", phone: "+233 244 22 11 04", workspace: "Primary", attendance: 97, payroll: "XAF 270,000", monthlyHours: 65, hoursTaught: 64, attendanceHours: 63 },
-  { id: "t5", name: "Mr. Ibrahim Sow", subject: "ICT", department: "Sciences", position: "Head of ICT", phone: "+221 77 22 11 05", workspace: "University", attendance: 90, payroll: "XAF 350,000", monthlyHours: 72, hoursTaught: 70, attendanceHours: 65 },
+  { id: "t1", name: "Mr. Emeka Obi", subject: "Mathematics", department: "Sciences", position: "Senior Teacher", phone: "+234 803 22 11 01", workspace: "Secondary", attendance: 98, payroll: "XAF 320,000", monthlyHours: 80, hoursTaught: 78, attendanceHours: 76, assignedClasses: [{ workspace: "Secondary", level: "Form 3", division: "A" }, { workspace: "Secondary", level: "Form 4", division: "A" }] },
+  { id: "t2", name: "Mme. Aline Foka", subject: "French", department: "Languages", position: "Teacher", phone: "+237 670 22 11 02", workspace: "Primary", attendance: 95, payroll: "XAF 280,000", monthlyHours: 70, hoursTaught: 70, attendanceHours: 68, assignedClasses: [{ workspace: "Primary", level: "Class 4", division: "A" }, { workspace: "Primary", level: "CE1", division: "A" }] },
+  { id: "t3", name: "Mr. Samuel Kim", subject: "Physics", department: "Sciences", position: "Lab Teacher", phone: "+237 670 22 11 03", workspace: "Secondary", attendance: 92, payroll: "XAF 310,000", monthlyHours: 60, hoursTaught: 58, attendanceHours: 55, assignedClasses: [{ workspace: "Secondary", level: "Form 5", division: "B" }, { workspace: "Secondary", level: "3ème", division: "B" }] },
+  { id: "t4", name: "Mrs. Lillian Boateng", subject: "History", department: "Humanities", position: "Teacher", phone: "+233 244 22 11 04", workspace: "Primary", attendance: 97, payroll: "XAF 270,000", monthlyHours: 65, hoursTaught: 64, attendanceHours: 63, assignedClasses: [{ workspace: "Primary", level: "Class 5", division: "A" }, { workspace: "Primary", level: "Class 6", division: "B" }] },
+  { id: "t5", name: "Mr. Ibrahim Sow", subject: "ICT", department: "Sciences", position: "Head of ICT", phone: "+221 77 22 11 05", workspace: "University", attendance: 90, payroll: "XAF 350,000", monthlyHours: 72, hoursTaught: 70, attendanceHours: 65, assignedClasses: [{ workspace: "University", level: "Level 1" }, { workspace: "University", level: "Level 2" }] },
 ];
 
 export const MESSAGES: Message[] = [
@@ -196,3 +199,103 @@ export const ATTENDANCE_TODAY = {
   totalStudents: 457,
   totalTeachers: 38,
 };
+
+// === Attendance App sync (read-only on dashboard) ===
+
+export type RollCallStatus = "Completed" | "Pending";
+
+export type RollCall = {
+  id: string;
+  workspace: string;
+  level: string;
+  division?: string;
+  subject: string;
+  teacher: string;
+  teacherId: string;
+  startsAt: string;
+  endsAt: string;
+  status: RollCallStatus;
+  submittedAt?: string;
+  present: number;
+  absent: number;
+  late: number;
+  excused: number;
+};
+
+export const ROLL_CALL_TODAY: RollCall[] = [
+  { id: "rc1", workspace: "Secondary", level: "Form 3", division: "A", subject: "Mathematics", teacher: "Mr. Emeka Obi", teacherId: "t1", startsAt: "08:00", endsAt: "08:50", status: "Completed", submittedAt: "08:05", present: 24, absent: 2, late: 1, excused: 0 },
+  { id: "rc2", workspace: "Secondary", level: "Form 4", division: "A", subject: "Mathematics", teacher: "Mr. Emeka Obi", teacherId: "t1", startsAt: "09:00", endsAt: "09:50", status: "Pending", present: 0, absent: 0, late: 0, excused: 0 },
+  { id: "rc3", workspace: "Secondary", level: "Form 5", division: "B", subject: "Physics", teacher: "Mr. Samuel Kim", teacherId: "t3", startsAt: "10:00", endsAt: "10:50", status: "Completed", submittedAt: "10:08", present: 21, absent: 3, late: 0, excused: 1 },
+  { id: "rc4", workspace: "Secondary", level: "3ème", division: "B", subject: "Physics", teacher: "Mr. Samuel Kim", teacherId: "t3", startsAt: "11:00", endsAt: "11:50", status: "Pending", present: 0, absent: 0, late: 0, excused: 0 },
+  { id: "rc5", workspace: "Primary", level: "Class 5", division: "A", subject: "History", teacher: "Mrs. Lillian Boateng", teacherId: "t4", startsAt: "08:00", endsAt: "08:50", status: "Completed", submittedAt: "08:03", present: 27, absent: 1, late: 2, excused: 0 },
+  { id: "rc6", workspace: "Primary", level: "Class 4", division: "A", subject: "Français", teacher: "Mme. Aline Foka", teacherId: "t2", startsAt: "09:00", endsAt: "09:50", status: "Completed", submittedAt: "09:06", present: 25, absent: 2, late: 0, excused: 1 },
+  { id: "rc7", workspace: "Primary", level: "CE1", division: "A", subject: "Français", teacher: "Mme. Aline Foka", teacherId: "t2", startsAt: "10:00", endsAt: "10:50", status: "Pending", present: 0, absent: 0, late: 0, excused: 0 },
+  { id: "rc8", workspace: "University", level: "Level 1", subject: "ICT Fundamentals", teacher: "Mr. Ibrahim Sow", teacherId: "t5", startsAt: "10:00", endsAt: "11:30", status: "Completed", submittedAt: "10:12", present: 48, absent: 6, late: 2, excused: 0 },
+];
+
+export type StudentAttendance = {
+  rollCallId: string;
+  studentId: string;
+  studentName: string;
+  status: "Present" | "Absent" | "Late" | "Excused";
+  time?: string;
+};
+
+export const STUDENT_ATTENDANCE: StudentAttendance[] = [
+  { rollCallId: "rc1", studentId: "s3", studentName: "Chiamaka Eze", status: "Present", time: "08:01" },
+  { rollCallId: "rc1", studentId: "s7", studentName: "Grace Bello", status: "Late", time: "08:14" },
+  { rollCallId: "rc3", studentId: "s4", studentName: "Daniel Mbah", status: "Absent" },
+  { rollCallId: "rc5", studentId: "s1", studentName: "Aïsha Nkomo", status: "Present", time: "07:58" },
+  { rollCallId: "rc5", studentId: "s2", studentName: "Brian Tabi", status: "Late", time: "08:11" },
+  { rollCallId: "rc6", studentId: "s5", studentName: "Esther Ngono", status: "Present", time: "08:55" },
+  { rollCallId: "rc8", studentId: "s6", studentName: "Frank Owusu", status: "Present", time: "09:50" },
+];
+
+export type GateEvent = {
+  id: string;
+  studentId: string;
+  studentName: string;
+  workspace: string;
+  level: string;
+  division?: string;
+  gate: string;
+  direction: "IN" | "OUT";
+  time: string;
+};
+
+export const GATE_EVENTS: GateEvent[] = [
+  { id: "g1", studentId: "s1", studentName: "Aïsha Nkomo", workspace: "Primary", level: "Class 5", division: "A", gate: "Gate 1", direction: "IN", time: "07:42" },
+  { id: "g2", studentId: "s2", studentName: "Brian Tabi", workspace: "Primary", level: "Class 6", division: "B", gate: "Gate 1", direction: "IN", time: "08:11" },
+  { id: "g3", studentId: "s3", studentName: "Chiamaka Eze", workspace: "Secondary", level: "Form 3", division: "A", gate: "Gate 2", direction: "IN", time: "07:55" },
+  { id: "g4", studentId: "s7", studentName: "Grace Bello", workspace: "Secondary", level: "Form 4", division: "A", gate: "Gate 2", direction: "IN", time: "08:15" },
+  { id: "g5", studentId: "s5", studentName: "Esther Ngono", workspace: "Primary", level: "Class 4", division: "A", gate: "Gate 1", direction: "IN", time: "07:50" },
+  { id: "g6", studentId: "s6", studentName: "Frank Owusu", workspace: "University", level: "Level 1", gate: "Main", direction: "IN", time: "09:45" },
+];
+
+export type ParentAlert = {
+  id: string;
+  studentName: string;
+  parentName: string;
+  workspace: string;
+  level: string;
+  division?: string;
+  reason: "Late" | "Absent" | "No gate entry";
+  channels: Array<"Email" | "WhatsApp" | "Dashboard">;
+  status: "Pending" | "Sent" | "Snoozed";
+};
+
+export const PARENT_ALERTS_TODAY: ParentAlert[] = [
+  { id: "al1", studentName: "Daniel Mbah", parentName: "Paul Mbah", workspace: "Secondary", level: "Form 5", division: "B", reason: "Absent", channels: ["Email", "Dashboard"], status: "Pending" },
+  { id: "al2", studentName: "Grace Bello", parentName: "Yemi Bello", workspace: "Secondary", level: "Form 4", division: "A", reason: "Late", channels: ["Email", "WhatsApp"], status: "Pending" },
+  { id: "al3", studentName: "Brian Tabi", parentName: "Joseph Tabi", workspace: "Primary", level: "Class 6", division: "B", reason: "Late", channels: ["Dashboard"], status: "Sent" },
+  { id: "al4", studentName: "Hassan Diallo", parentName: "Aminata Diallo", workspace: "University", level: "Level 2", reason: "No gate entry", channels: ["Email"], status: "Pending" },
+];
+
+export const WEEKLY_ATTENDANCE = [
+  { day: "Mon", present: 422, absent: 35, rate: 92 },
+  { day: "Tue", present: 431, absent: 26, rate: 94 },
+  { day: "Wed", present: 415, absent: 42, rate: 91 },
+  { day: "Thu", present: 408, absent: 49, rate: 89 },
+  { day: "Fri", present: 412, absent: 45, rate: 90 },
+  { day: "Sat", present: 205, absent: 12, rate: 94 },
+];
