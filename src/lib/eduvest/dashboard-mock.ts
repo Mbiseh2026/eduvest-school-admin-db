@@ -114,11 +114,11 @@ export const PARENTS: Parent[] = [
 ];
 
 export const TEACHERS: Teacher[] = [
-  { id: "t1", name: "Mr. Emeka Obi", subject: "Mathematics", department: "Sciences", position: "Senior Teacher", phone: "+234 803 22 11 01", workspace: "Secondary", attendance: 98, payroll: "XAF 320,000", monthlyHours: 80, hoursTaught: 78, attendanceHours: 76 },
-  { id: "t2", name: "Mme. Aline Foka", subject: "French", department: "Languages", position: "Teacher", phone: "+237 670 22 11 02", workspace: "Primary", attendance: 95, payroll: "XAF 280,000", monthlyHours: 70, hoursTaught: 70, attendanceHours: 68 },
-  { id: "t3", name: "Mr. Samuel Kim", subject: "Physics", department: "Sciences", position: "Lab Teacher", phone: "+237 670 22 11 03", workspace: "Secondary", attendance: 92, payroll: "XAF 310,000", monthlyHours: 60, hoursTaught: 58, attendanceHours: 55 },
-  { id: "t4", name: "Mrs. Lillian Boateng", subject: "History", department: "Humanities", position: "Teacher", phone: "+233 244 22 11 04", workspace: "Primary", attendance: 97, payroll: "XAF 270,000", monthlyHours: 65, hoursTaught: 64, attendanceHours: 63 },
-  { id: "t5", name: "Mr. Ibrahim Sow", subject: "ICT", department: "Sciences", position: "Head of ICT", phone: "+221 77 22 11 05", workspace: "University", attendance: 90, payroll: "XAF 350,000", monthlyHours: 72, hoursTaught: 70, attendanceHours: 65 },
+  { id: "t1", name: "Mr. Emeka Obi", subject: "Mathematics", department: "Sciences", position: "Senior Teacher", phone: "+234 803 22 11 01", workspace: "Secondary", attendance: 98, payroll: "XAF 320,000", monthlyHours: 80, hoursTaught: 78, attendanceHours: 76, assignedClasses: [{ workspace: "Secondary", level: "Form 3", division: "A" }, { workspace: "Secondary", level: "Form 4", division: "A" }] },
+  { id: "t2", name: "Mme. Aline Foka", subject: "French", department: "Languages", position: "Teacher", phone: "+237 670 22 11 02", workspace: "Primary", attendance: 95, payroll: "XAF 280,000", monthlyHours: 70, hoursTaught: 70, attendanceHours: 68, assignedClasses: [{ workspace: "Primary", level: "Class 4", division: "A" }, { workspace: "Primary", level: "CE1", division: "A" }] },
+  { id: "t3", name: "Mr. Samuel Kim", subject: "Physics", department: "Sciences", position: "Lab Teacher", phone: "+237 670 22 11 03", workspace: "Secondary", attendance: 92, payroll: "XAF 310,000", monthlyHours: 60, hoursTaught: 58, attendanceHours: 55, assignedClasses: [{ workspace: "Secondary", level: "Form 5", division: "B" }, { workspace: "Secondary", level: "3ème", division: "B" }] },
+  { id: "t4", name: "Mrs. Lillian Boateng", subject: "History", department: "Humanities", position: "Teacher", phone: "+233 244 22 11 04", workspace: "Primary", attendance: 97, payroll: "XAF 270,000", monthlyHours: 65, hoursTaught: 64, attendanceHours: 63, assignedClasses: [{ workspace: "Primary", level: "Class 5", division: "A" }, { workspace: "Primary", level: "Class 6", division: "B" }] },
+  { id: "t5", name: "Mr. Ibrahim Sow", subject: "ICT", department: "Sciences", position: "Head of ICT", phone: "+221 77 22 11 05", workspace: "University", attendance: 90, payroll: "XAF 350,000", monthlyHours: 72, hoursTaught: 70, attendanceHours: 65, assignedClasses: [{ workspace: "University", level: "Level 1" }, { workspace: "University", level: "Level 2" }] },
 ];
 
 export const MESSAGES: Message[] = [
