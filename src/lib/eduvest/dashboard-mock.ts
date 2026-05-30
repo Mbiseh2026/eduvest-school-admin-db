@@ -7,7 +7,8 @@ export type Student = {
   photo: string;
   studentId: string;
   workspace: string; // e.g. "Primary", "Secondary"
-  level: string; // English canonical level, e.g. "Form 3"
+  level: string; // Canonical class label, e.g. "Form 3" or "6ème"
+  division?: string; // Optional stream, e.g. "A", "B"
   section?: "Primary" | "Secondary" | "University"; // legacy
   className: string; // human friendly e.g. "Form 3 A"
   parent: string;
