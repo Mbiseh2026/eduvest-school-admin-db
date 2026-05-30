@@ -37,6 +37,7 @@ function TeachersPage() {
               <th className="px-4 py-3 text-left font-medium">Workspace</th>
               <th className="px-4 py-3 text-left font-medium">Department</th>
               <th className="px-4 py-3 text-left font-medium">Phone</th>
+              <th className="px-4 py-3 text-left font-medium">Assigned classes</th>
               <th className="px-4 py-3 text-right font-medium">Monthly hours</th>
               <th className="px-4 py-3 text-right font-medium">Hours taught</th>
               <th className="px-4 py-3 text-right font-medium">Attendance hrs</th>
@@ -51,6 +52,14 @@ function TeachersPage() {
                 <td className="px-4 py-3 text-muted-foreground">{t.workspace}</td>
                 <td className="px-4 py-3 text-muted-foreground">{t.department}</td>
                 <td className="px-4 py-3 text-muted-foreground">{t.phone}</td>
+                <td className="px-4 py-3">
+                  <div className="flex flex-wrap gap-1">
+                    {(t.assignedClasses ?? []).map((c, i) => (
+                      <span key={i} className="rounded-full bg-secondary px-2 py-0.5 text-[11px]">{classLabel(c.level, c.division)}</span>
+                    ))}
+                    {(!t.assignedClasses || t.assignedClasses.length === 0) && <span className="text-xs text-muted-foreground">—</span>}
+                  </div>
+                </td>
                 <td className="px-4 py-3 text-right">{t.monthlyHours}</td>
                 <td className="px-4 py-3 text-right">{t.hoursTaught}</td>
                 <td className="px-4 py-3 text-right">{t.attendanceHours}</td>
@@ -58,7 +67,7 @@ function TeachersPage() {
               </tr>
             ))}
             {rows.length === 0 && (
-              <tr><td colSpan={9} className="px-4 py-12 text-center text-sm text-muted-foreground">No teachers in this workspace yet.</td></tr>
+              <tr><td colSpan={10} className="px-4 py-12 text-center text-sm text-muted-foreground">No teachers in this workspace yet.</td></tr>
             )}
           </tbody>
         </table>
