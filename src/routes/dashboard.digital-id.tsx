@@ -63,7 +63,7 @@ function DigitalIdPage() {
   const buildStudentCard = (s: Student): IdCardData => ({
     name: s.name,
     role: "Student",
-    detail: `${s.workspace} · ${s.level}`,
+    detail: `${s.workspace} · ${s.className || s.level}`,
     photo: s.photo,
     code: s.studentId,
     token: generateQrToken("STU", s.id),
@@ -146,7 +146,7 @@ function DigitalIdPage() {
                   <img src={s.photo} alt={s.name} className="h-12 w-12 rounded-full border border-border" />
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold">{s.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">{s.workspace} · {s.level} · {s.studentId}</p>
+                    <p className="truncate text-xs text-muted-foreground">{s.workspace} · {s.className || s.level} · {s.studentId}</p>
                   </div>
                 </button>
               ))}

@@ -206,7 +206,7 @@ function StudentsPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 font-mono text-xs">{s.studentId}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{s.workspace} · {s.level}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{s.workspace} · {s.className || s.level}</td>
                     <td className="px-4 py-3 text-muted-foreground">{s.parent}</td>
                     <td className="px-4 py-3 text-right">XAF {s.totalFees.toLocaleString()}</td>
                     <td className="px-4 py-3 text-right font-semibold">{bal > 0 ? `XAF ${bal.toLocaleString()}` : "—"}</td>
@@ -285,21 +285,24 @@ function Field({ label, value, icon: Icon }: { label: string; value: string; ico
 
 function ImportCsvDialog({ onClose, onImport }: { onClose: () => void; onImport: (s: Student[]) => void }) {
   const [text, setText] = useState("");
-  const cols = "workspace,class,studentNumber,name,parent,guardian,parentPhone,parentEmail,totalFees,paidFees,registration";
+  const cols = "workspace,class,division,studentNumber,name,parent,guardian,parentPhone,parentEmail,totalFees,paidFees,registration";
 
   const parse = () => {
     const lines = text.split(/\r?\n/).filter(Boolean);
     const rows = lines.slice(lines[0]?.toLowerCase().startsWith("workspace") ? 1 : 0);
     const parsed: Student[] = rows.map((line, i) => {
-      const [workspace, level, studentId, name, parent, guardian, parentPhone, parentEmail, totalFees, paidFees, registration] = line.split(",").map((c) => c.trim());
+      const [workspace, level, division, studentId, name, parent, guardian, parentPhone, parentEmail, totalFees, paidFees, registration] = line.split(",").map((c) => c.trim());
+      const div = division || "";
+      const lvl = level || "Class 1";
       return {
         id: `imp-${Date.now()}-${i}`,
         name: name || "Unnamed",
         photo: `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(name || "S")}`,
         studentId: studentId || `IMP-${i}`,
         workspace: workspace || "Primary",
-        level: level || "Class 1",
-        className: level || "",
+        level: lvl,
+        division: div || undefined,
+        className: div ? `${lvl} ${div}` : lvl,
         parent: parent || "",
         guardian: guardian || parent || "",
         parentPhone: parentPhone || "",
@@ -321,13 +324,17 @@ function ImportCsvDialog({ onClose, onImport }: { onClose: () => void; onImport:
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Import students from CSV</DialogTitle>
-          <DialogDescription>Columns: {cols}</DialogDescription>
+          <DialogDescription>
+            Columns: {cols}
+            <br />
+            <span className="text-[11px]">Leave <code>division</code> empty for schools without streams. Examples below mix English and French classes.</span>
+          </DialogDescription>
         </DialogHeader>
         <textarea
           rows={10}
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder={`Primary,Class 1,GFS-2026-001,New Student,Jane Doe,Jane Doe,+237...,jane@x.com,300000,100000,Registered`}
+          placeholder={`Secondary,Form 1,A,GFS-2026-001,New Student,Jane Doe,Jane Doe,+237...,jane@x.com,300000,100000,Registered\nSecondary,6ème,B,GFS-2026-002,Nouvel Élève,Jean Doe,Jean Doe,+237...,jean@x.com,300000,100000,Registered\nPrimary,Class 3,,GFS-2026-003,Small School Kid,Mary Doe,Mary Doe,+237...,mary@x.com,250000,250000,Registered`}
           className="w-full rounded-xl border border-border bg-background p-3 font-mono text-xs outline-none focus:border-primary"
         />
         <DialogFooter>
