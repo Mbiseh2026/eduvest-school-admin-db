@@ -103,7 +103,11 @@ export const PARENTS: Parent[] = [
   { id: "p5", name: "Sandra Ngono", phone: "+237 690 11 22 05", email: "sandra@example.com", workspace: "Primary", level: "Class 4", children: ["Esther Ngono"], lastMessage: "Weekly summary — Friday" },
   { id: "p6", name: "Akosua Owusu", phone: "+233 244 55 22 06", email: "akosua@example.com", workspace: "University", level: "Level 1", children: ["Frank Owusu"], lastMessage: "Welcome — 1 month ago" },
   { id: "p7", name: "Carole Tchoumi", phone: "+237 670 99 11 01", email: "carole@example.com", workspace: "Nursery", level: "Nursery 2", children: ["Ines Tchoumi"], lastMessage: "Photo day — today" },
-  { id: "p8", name: "Kojo Mensah", phone: "+233 244 99 11 04", email: "kojo@example.com", workspace: "Secondary", level: "Lower Sixth", children: ["Leo Mensah"], lastMessage: "Term invoice — 3 days ago" },
+  { id: "p8", name: "Kojo Mensah", phone: "+233 244 99 11 04", email: "kojo@example.com", workspace: "Higher Education", level: "Lower Sixth", children: ["Leo Mensah"], lastMessage: "Term invoice — 3 days ago" },
+  { id: "p9", name: "Brigitte Kana", phone: "+237 690 33 44 14", email: "brigitte@example.com", workspace: "Secondary", level: "3ème", children: ["Olivier Kana"], lastMessage: "Réunion parents — hier" },
+  { id: "p10", name: "Aïcha Touré", phone: "+237 690 33 44 13", email: "aicha@example.com", workspace: "Primary", level: "CE1", children: ["Mariam Touré"], lastMessage: "Bulletin envoyé — lundi" },
+  { id: "p11", name: "Jeanne Atangana", phone: "+237 690 33 44 15", email: "jeanne@example.com", workspace: "Higher Education", level: "Terminale", children: ["Sophie Atangana"], lastMessage: "Examen blanc — vendredi" },
+  { id: "p12", name: "Marthe Mbarga", phone: "+237 690 33 44 16", email: "marthe@example.com", workspace: "Pre-Nursery", level: "Crèche", children: ["Thierry Mbarga"], lastMessage: "Photo day — today" },
 ];
 
 export const TEACHERS: Teacher[] = [
