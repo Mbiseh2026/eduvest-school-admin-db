@@ -35,6 +35,8 @@ export type Parent = {
   lastMessage: string;
 };
 
+export type AssignedClass = { workspace: string; level: string; division?: string };
+
 export type Teacher = {
   id: string;
   name: string;
@@ -48,6 +50,7 @@ export type Teacher = {
   monthlyHours: number;
   hoursTaught: number;
   attendanceHours: number;
+  assignedClasses?: AssignedClass[];
 };
 
 export type Message = {
