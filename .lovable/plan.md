@@ -1,76 +1,50 @@
-# EduVest MVP Refinement Plan
+## Plan
 
-Scope: workflow & content refinements only. No redesign. Reuse existing sidebar, topbar, workspace selector, colors, and page shells.
+1. **Create one reliable class structure source**
+   - Update the academic levels so each workspace owns the correct classes:
+     - **Pre-Nursery**: English + French early years labels
+     - **Nursery**: English + French nursery labels
+     - **Primary**: English classes and French primary classes together
+     - **Secondary**: Form 1–5 plus 6ème–2nde only
+     - **Higher Education / High School**: Lower Sixth, Upper Sixth, Première, Terminale
+     - **Higher Institute / University**: their own higher-level structure
+   - Keep the existing workspace selector and layout unchanged.
 
-## 1. Academic levels per workspace (foundation)
-New file `src/lib/eduvest/academic-levels.ts`:
-- `LEVELS_BY_WORKSPACE: Record<Workspace, { en: string[]; fr: string[] }>` covering Nursery, Primary, Secondary, Higher Institute, University, Pre-Nursery, Higher Education (generic levels for the three flexible tiers).
-- Helper `getLevels(workspace, lang)` returning the active list. Reads language from existing `use-language` hook; falls back to English.
-- All downstream modules (students, parents, messaging, digital ID, finance class revenue) read from this helper — single source of truth, easy to extend.
+2. **Stop data disappearing when language changes**
+   - Fix filters so English and French class labels can coexist in the same workspace.
+   - The dashboard will no longer replace English classes with French classes when toggling language.
+   - Student, parent, finance, admissions, search and Digital ID filters will use stable class values.
 
-## 2. Mock data refresh
-Update `src/lib/eduvest/dashboard-mock.ts`:
-- Add `workspace` + `level` fields to each student (distribute across realistic levels).
-- Add `workspace` + `level` to each parent (derived from child).
-- Add `totalFees`, `paidFees` to students; derive `balance` + status.
-- Keep teachers as-is plus `monthlyHours`, `hoursTaught`, `attendanceHours`.
+3. **Add support for class divisions/streams**
+   - Organize classes as:
+     ```text
+     Workspace → Class level → Division
+     Example: Secondary → Form 1 → A
+     Example: Secondary → 6ème → B
+     Example: Primary → Class 3 → A
+     ```
+   - Display full class names like **Form 1 A**, **6ème B**, **Class 5 A** where the data has a division.
+   - If a small school has no divisions, the division stays blank and the class remains simply **Form 1** or **6ème**.
 
-## 3. Students module
-Rewrite `src/routes/dashboard.students.tsx`:
-- Three-pane drill-down on the same page: Workspace tabs (respects current workspace selector) → Level list (cards) → Student list (table).
-- Row click opens a `StudentProfileDialog` (new component) showing photo, full name, ID, workspace, class, parent/guardian, contacts, fees breakdown, registration status, attendance %, digital ID status.
-- Print actions (alphabetical / by fees / by registration / by class) using existing pdf util pattern (lightweight `jsPDF` already in deps via payslip).
-- CSV import dialog updated to accept new columns (workspace, class/level, parent, guardian, contacts, fees, student number, registration status). Parse client-side only; mock append.
+4. **Fix CSV import expectations**
+   - Update the CSV import guidance to separate class level and division:
+     ```csv
+     workspace,class,division,studentNumber,name,parent,guardian,parentPhone,parentEmail,totalFees,paidFees,registration
+     Secondary,Form 1,A,GFS-2026-001,New Student,Jane Doe,Jane Doe,+237...,jane@x.com,300000,100000,Registered
+     Secondary,6ème,B,GFS-2026-002,Nouvel Élève,Jean Doe,Jean Doe,+237...,jean@x.com,300000,100000,Registered
+     ```
+   - For schools without divisions, leave `division` empty.
 
-## 4. Parents module
-Rewrite `src/routes/dashboard.parents.tsx` with the same Workspace → Class → Parents drill-down. Row click → parent detail dialog with children, contacts, "Message" button (deep-link to messaging compose with audience preset).
+5. **Apply the same class logic to Digital ID cards**
+   - Digital ID student lists and previews will show the full class label including division when available.
+   - Teacher ID lists remain workspace-scoped.
 
-## 5. Global search
-Enhance `src/components/dashboard/DashboardTopbar.tsx`:
-- Replace the static search input with a popover-style command box (reuse `cmdk`/`command.tsx` already present).
-- Indexes students, parents, teachers, classes (from academic-levels helper). Click result → navigates to relevant route with `?focus=` query param.
+## Technical details
 
-## 6. Finance refinement
-- `dashboard.finance.tsx`: extend the transactions table with Total / Paid / Balance / Status columns, colored status pills (Paid / Partial / Outstanding).
-- Add "Revenue by class" card list — aggregates from updated students mock (students count × paid). Skip silently if workspace has no matching levels.
-- No tax, no engine.
-
-## 7. Messaging refinement
-Rewrite `src/routes/dashboard.messages.tsx`:
-- Tabs: Compose, Templates, History, Strategy, Classes.
-- Compose form: cascading audience selector — Scope (Whole school / Workspace / Class / Individual) → Workspace → Class → Recipient role (Students / Parents / Both) → optional individual.
-- Channel chips: SMS, Email, WhatsApp (placeholder, disabled badge "Coming soon").
-- Each message in History shows resolved target string (e.g. "Secondary › Form 2 › Parents").
-- Add a simple "Parent thread" placeholder list (mock conversation).
-
-## 8. Admissions module (new)
-- New route `src/routes/dashboard.admissions.tsx` with tabs: Applications, Review, Status, Decision.
-- New mock file `src/lib/eduvest/admissions-mock.ts`.
-- "New application" dialog: student + parent + workspace + class preference + contacts + optional admission fee.
-- Add to sidebar under Students area, gated by `students.view` permission.
-
-## 9. Digital ID refinement
-Rewrite `src/routes/dashboard.digital-id.tsx`:
-- Drill-down Workspace → Class → Student/Teacher.
-- Card preview shows BOTH sides (front: photo, logo, QR, name, ID number; back: emergency contact, school contact, ID details, terms).
-- Wire Preview (modal), Download (PNG via `html-to-image` if available, else SVG fallback), Print (window.print on hidden iframe). Provide one always-working "Sample" download.
-
-## 10. Payroll + teacher hours
-- `dashboard.teachers.tsx`: add columns Monthly hours, Hours taught, Attendance hours.
-- `dashboard.payroll.tsx`: add hours fields (monthly, taught) on create dialog, editable; surface them on table and in payslip.
-- `src/lib/eduvest/payslip-pdf.ts`: redesign layout — header band with school logo + name, employee block (ID, name, position, payment type), hours table, earnings/deductions table, large Net Pay box, period + reference, two signature lines (Employee / Administrator), footer note "Generated by EduVest". African school payroll style: clean ruled tables, no tax sections.
-
-## 11. Sidebar additions
-Add Admissions link under Students group in `DashboardSidebar.tsx`. Keep order, colors, structure.
-
-## Technical notes
-- All data still mock + localStorage; no backend.
-- Reuse existing UI primitives (`Dialog`, `Tabs`, `Command`, `Button`, `Input`). No new dependencies unless `html-to-image` for ID download — fallback to SVG/print if install fails.
-- Keep all role gating via existing `RoleGuard` + `useRole`.
-- Respect `useLanguage` for English/French level labels.
-- No changes to landing pages, auth, onboarding, settings layout.
-
-## Out of scope (per prompt)
-- New visual design, color changes, layout rework.
-- Real API integrations (payments, WhatsApp, OAuth).
-- Tax/accounting engine, advanced reporting.
+- Extend the student model with an optional `division` field while keeping existing `level` and `className` compatibility.
+- Add helper functions in `academic-levels.ts` for:
+  - canonical class lists by workspace,
+  - class label display,
+  - matching class filters safely across English/French labels.
+- Update only the affected dashboard modules: students, parents, finance, admissions, Digital ID, and topbar search.
+- No redesign, no sidebar/workspace structure changes, no backend/API work.
