@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import { TEACHERS } from "@/lib/eduvest/dashboard-mock";
+import { classLabel } from "@/lib/eduvest/academic-levels";
 import { useWorkspace } from "@/hooks/use-workspace";
 
 export const Route = createFileRoute("/dashboard/teachers")({
