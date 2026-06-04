@@ -218,7 +218,7 @@ function AttendancePage() {
           <h2 className="text-base font-semibold">Choose a class</h2>
           <p className="text-xs text-muted-foreground">{effectiveWs} → Level → Stream</p>
           <div className="mt-4 flex flex-wrap gap-2">
-            {(LEVELS_BY_WORKSPACE[effectiveWs] ?? []).map((lvl) => {
+            {(LEVELS_BY_WORKSPACE[effectiveWs] ?? []).filter((lvl) => detectSection(effectiveWs, lvl) === section).map((lvl) => {
               const variants = scopedRollCalls.filter((r) => r.level === lvl);
               if (variants.length === 0) {
                 return (
