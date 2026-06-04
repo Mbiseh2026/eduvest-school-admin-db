@@ -1,6 +1,13 @@
 // Lightweight mock data for the EduVest dashboard MVP.
 // Placeholder until backend integration.
 
+export type StudentRemark = {
+  id: string;
+  date: string;
+  teacher: string;
+  text: string;
+};
+
 export type Student = {
   id: string;
   name: string;
@@ -22,6 +29,30 @@ export type Student = {
   totalFees: number;
   paidFees: number;
   digitalId: "Issued" | "Pending";
+
+  // Extended (from admission). All optional for backward compatibility.
+  dob?: string;
+  gender?: "Male" | "Female" | "Other";
+  nationality?: string;
+  address?: string;
+  religion?: string;
+  previousSchool?: string;
+  // Health
+  bloodGroup?: string;
+  allergies?: string;
+  conditions?: string;
+  emergencyContact?: string;
+  // Family
+  motherName?: string;
+  motherPhone?: string;
+  fatherName?: string;
+  fatherPhone?: string;
+  parentsMaritalStatus?: "Married" | "Separated" | "Divorced" | "Widowed" | "Single";
+  guardianRelation?: string;
+  // Documents (mock URLs)
+  documents?: { label: string; url: string }[];
+  // Teacher remarks (per day)
+  remarks?: StudentRemark[];
 };
 
 export type Parent = {

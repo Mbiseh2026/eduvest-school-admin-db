@@ -15,6 +15,9 @@ import {
   Send,
   BellOff,
   Radio,
+  ClipboardList,
+  MessageCircle,
+  ShieldCheck,
 } from "lucide-react";
 import { PageHeader, StatCard } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -27,8 +30,10 @@ import {
   WEEKLY_ATTENDANCE,
   type RollCall,
 } from "@/lib/eduvest/dashboard-mock";
-import { LEVELS_BY_WORKSPACE, classLabel } from "@/lib/eduvest/academic-levels";
+import { LEVELS_BY_WORKSPACE, classLabel, detectSection, type AcademicSection } from "@/lib/eduvest/academic-levels";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { SectionToggle } from "@/components/eduvest/SectionToggle";
+import { updateStudent, useStudents } from "@/lib/eduvest/students-store";
 
 export const Route = createFileRoute("/dashboard/attendance")({
   head: () => ({ meta: [{ title: "Attendance — EduVest" }, { name: "robots", content: "noindex" }] }),
@@ -43,6 +48,10 @@ function AttendancePage() {
   const [pickedLevel, setPickedLevel] = useState<string | null>(null);
   const [pickedDivision, setPickedDivision] = useState<string | null>(null);
   const [tab, setTab] = useState<"class" | "gate">("class");
+  const [section, setSection] = useState<AcademicSection>("english");
+  const [remarkText, setRemarkText] = useState("");
+  const [remarkStudentId, setRemarkStudentId] = useState<string | null>(null);
+  const allStudents = useStudents();
 
   // Reset internal state if workspace changes
   const effectiveWs = isAll ? pickedWs : workspace;
@@ -117,13 +126,32 @@ function AttendancePage() {
         }
       />
 
-      {/* Top stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Present today" value={ATTENDANCE_TODAY.present} hint={`of ${ATTENDANCE_TODAY.totalStudents}`} icon={UserCheck} tone="primary" />
-        <StatCard label="Late" value={ATTENDANCE_TODAY.late} icon={Clock} tone="warning" />
-        <StatCard label="Absent" value={ATTENDANCE_TODAY.absent} hint="Auto-alert queued" icon={UserX} />
-        <StatCard label="Roll calls" value={`${completed}/${scopedRollCalls.length}`} hint={`Teachers submitted ${teachersWhoSubmitted}/${totalTeachers}`} icon={CalendarCheck} tone="navy" />
+      {/* Section toggle */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SectionToggle value={section} onChange={setSection} />
+        <span className="text-sm text-muted-foreground">
+          Date: {new Date().toLocaleDateString(undefined, { day: "2-digit", month: "long", year: "numeric" })}
+        </span>
       </div>
+
+      {/* Today metrics (moved from Students) */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+        <StatCard label="Total Students" value={ATTENDANCE_TODAY.totalStudents} icon={ClipboardList} tone="primary" />
+        <StatCard label="Present Today" value={ATTENDANCE_TODAY.present} icon={UserCheck} tone="navy" />
+        <StatCard label="Absent Today" value={ATTENDANCE_TODAY.absent} icon={UserX} />
+        <StatCard label="Late Today" value={ATTENDANCE_TODAY.late} icon={Clock} tone="warning" />
+        <StatCard label="Excused Today" value={STUDENT_ATTENDANCE.filter((a) => a.status === "Excused").length} icon={ShieldCheck} />
+        <StatCard label="Remarks Today" value={allStudents.reduce((n, s) => n + ((s.remarks ?? []).filter((r) => r.date === new Date().toISOString().slice(0, 10)).length), 0)} icon={MessageCircle} />
+      </div>
+
+      {/* Roll call summary */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
+        <StatCard label="Roll calls" value={`${completed}/${scopedRollCalls.length}`} hint={`Teachers submitted ${teachersWhoSubmitted}/${totalTeachers}`} icon={CalendarCheck} tone="navy" />
+        <StatCard label="Section" value={section === "english" ? "English" : "French"} hint="Switch with the toggle above to filter classes" />
+      </div>
+
+      {/* Filter rollcalls by current section helper note */}
+      {/* Note: rollcalls list below already shows all; section toggle drives class drill-down chips. */}
 
       {/* Breadcrumb / drill-down chips */}
       <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -190,7 +218,7 @@ function AttendancePage() {
           <h2 className="text-base font-semibold">Choose a class</h2>
           <p className="text-xs text-muted-foreground">{effectiveWs} → Level → Stream</p>
           <div className="mt-4 flex flex-wrap gap-2">
-            {(LEVELS_BY_WORKSPACE[effectiveWs] ?? []).map((lvl) => {
+            {(LEVELS_BY_WORKSPACE[effectiveWs] ?? []).filter((lvl) => detectSection(effectiveWs, lvl) === section).map((lvl) => {
               const variants = scopedRollCalls.filter((r) => r.level === lvl);
               if (variants.length === 0) {
                 return (
