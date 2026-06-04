@@ -1,94 +1,103 @@
-## Goal
+# Students & Attendance UI Adjustments
 
-Refine (not redesign) the dashboard Attendance module so it acts purely as a **monitoring and reporting surface** for data produced by the EduVest Attendance App. No marking happens on the dashboard.
+No redesign. Targeted UI + data-flow adjustments using existing tokens, components, and mock data layer.
 
-## Scope of changes
+## 1. Students = source of truth
 
-Only the attendance area of the dashboard plus its mock data layer. Sidebar, workspace switcher, theme, and other modules stay untouched.
+All student records (online admissions + CSV imports + manual adds) live in one store and are read by Attendance, Digital ID, Finance, Messages, Parents.
 
-### 1. Rename + repurpose menu
+- Keep `STUDENTS` in `src/lib/eduvest/dashboard-mock.ts` as the single source.
+- Admission "Accept" pushes the admission record into `STUDENTS` (currently it only changes status).
+- CSV import stays on Students page only — remove duplicate import entry points elsewhere if any.
+- Attendance, Digital ID etc. continue to read from `STUDENTS` (already true) — no logic rewrite, just confirm.
 
-- Sidebar/topbar entry: **"Attendance"** stays, but the primary CTA becomes **"View Attendance"** (no "Mark attendance" button on dashboard).
-- Remove the "Mark attendance" button from `src/routes/dashboard.attendance.tsx`.
-- Add subtitle: *"Live data synced from the EduVest Attendance App."*
+## 2. New Students page layout (matches reference)
 
-### 2. View Attendance drill-down
+Top of page, in order:
+1. Section toggle: **English Section** / **French Section** (pill tabs).
+2. Date label on the right ("Date: 10th May 2026").
+3. Analytics row — **fees-focused** (replaces attendance metrics):
+   - Total Students
+   - Fees Completed
+   - Fees Started (partial)
+   - Not Started
+   - Registered
+   - Pending Registration
+4. Workspace label + "Apply Filters" button.
+5. Class chips row: `All · Form 1 · Form 2 · Form 3 · Form 4 · Form 5` (English) or `6ème · 5ème · 4ème · 3ème · 2nde` (French), driven by the section toggle.
+6. Search bar.
+7. **Subclass column** (left): when a class is selected, list its subclasses (`Form 1A`, `Form 1B`…) with an "+ Add subclass" button.
+8. Student table on the right of the subclass column.
 
-Replace the current single-table view with workspace-isolated drill-down:
+The section toggle, analytics row, and class/subclass chips are reused across **every workspace** (Pre-Nursery, Nursery, Primary, Secondary, Higher Ed, Higher Institute, University). Layout is identical; only the class labels differ per workspace.
 
-```text
-Workspace → Level → Stream → Records
-e.g. Secondary → Form 1 → A → today's roll call
-     Primary   → Class 4 → (no stream) → today's roll call
-     Higher Ed → Lower Sixth → A
-```
+## 3. Subclasses (streams A/B/C/D…)
 
-- Reuse `LEVELS_BY_WORKSPACE` from `academic-levels.ts` and the existing `useWorkspace` hook.
-- Streams pulled from data (A/B/C…/none). No hard-coded cap.
-- When workspace = "All School", show a workspace picker first. When a workspace is locked, jump straight to its levels.
-- Breadcrumb chips for quick back-navigation (consistent with Students/Parents pattern).
+- `division` already exists on `Student`. Add a derived `subclasses(workspace, level)` helper that returns the sorted, unique divisions present + any manually-added ones.
+- "Add subclass" opens a small dialog: pick letter (A–Z), optionally import CSV scoped to that subclass.
+- New subclasses persist in localStorage keyed by `${workspace}:${level}` so `Form 1C` shows up sorted between `Form 1B` and `Form 2A`.
+- Sort order: `level index` then `division alpha` (so Form 1A, Form 1B, Form 1C, Form 2A…).
 
-### 3. Roll call monitoring panel
+## 4. Student row → 3-dot menu
 
-On the attendance landing page, surface:
-- Today's totals: Present / Absent / Late / Excused (already exist — keep).
-- **Roll Call Status** list: each scheduled class with status `Completed | Pending`, teacher name, submitted-at time.
-- Two stat cards: "Roll calls completed X/Y" and "Teachers submitted X/Y".
+Replace row-click open with a 3-dot menu on the right of each row:
+- **View student details** — opens full profile dialog
+- Message parent
+- Print ID card
+- Edit
+- Remove
 
-### 4. Gate vs Class attendance views
+## 5. Full student profile (from admission data)
 
-Inside a selected class, two tabs:
-- **Class roll call** — student list with Present/Absent/Late/Excused badges (read-only).
-- **Gate entries** — chronological scans (time, gate, direction) for that class's students.
+Extend `Student` type with the admission fields:
+- `dob`, `gender`, `nationality`, `address`
+- `health`: blood group, allergies, conditions, emergency contact
+- `family`: mother, father, guardian (if different), marital status of parents
+- `previousSchool`, `religion` (optional)
+- `documents`: photo, birth cert, prior reports (mock URLs)
+- `fees` breakdown: registration, tuition, paid, balance
 
-Plus a workspace-level **Live feed** card showing latest gate scans across the workspace (read-only).
+Profile dialog gets tabs: **Overview · Family · Health · Academic · Fees · Documents**.
 
-### 5. Actions inside View Attendance
+The Admissions "Review" dialog shows the same tabs + fee status, with **Accept / Reject / Waitlist** buttons. Accepting promotes the admission into `STUDENTS`.
 
-- **Print** daily attendance sheet (reuse `print-pdf.ts`).
-- **Download** CSV export of current view.
-- **Export** all-day report (CSV).
-- **Import** button as a disabled placeholder with tooltip "Attendance is captured in the Attendance App."
+## 6. Remark Today
 
-### 6. Parent alerts (dashboard-controlled)
+- Add `remarks: { date, teacher, text }[]` to `Student`.
+- "Remark Today" lives on the **Attendance** page (not Students). Clicking a student in Attendance opens a small panel where the teacher types today's remark; it appends to the array.
+- Student profile → Academic tab shows full remark history.
 
-Add an **Alerts** section in View Attendance:
-- Auto-generated entries for Late / Absent / No gate entry students of the day.
-- Channel chips: `Email`, `WhatsApp (soon)`, `Dashboard message`.
-- "Send now" + "Snooze" actions (mock — wired to existing messaging mock).
+## 7. Attendance page — receive the moved metrics
 
-### 7. Weekly report → Sunday
+Move from Students to Attendance:
+- Total Students · Present Today · Absent Today · Late Today · Excused Today · Remarks Today
+- Two sub-tabs already exist: **Gate Attendance** / **Class Attendance** — keep.
+- Class Attendance shows per-subclass roster with check-in toggles and a remark input per row.
 
-- Update weekly summary card in `dashboard.attendance.tsx` so the schedule label reads **"Auto-shared with parents every Sunday evening."**
-- Adjust mock weekly rows to Mon–Sat (or full week) with Sunday as send day.
-- Per-parent summary fields: Present days, Absent days, Late count, Attendance %.
+## 8. Teachers responsibility model
 
-### 8. Teacher scoping note (dashboard side only)
+- Secondary / High School / Higher Institute / University: teachers are assigned to **subjects + class periods** (many-to-many).
+- Pre-Nursery / Nursery / Primary: each subclass has **one lead teacher + optional assistant**.
 
-No teacher-app build here, but document the contract in mock data:
-- `TEACHERS[i].assignedClasses: { workspace, level, stream }[]`.
-- Dashboard "Teachers" table gains a small "Assigned classes" column (read-only) so admins can verify what each teacher will see in the Attendance App.
+Reflect this in mock data (`teachers-mock` extension) and surface in:
+- Student profile → Academic tab ("Class teachers" list per workspace rules).
+- Attendance → Class Attendance header shows the responsible teacher(s) for that subclass/period.
 
-### 9. Mock data layer
+## 9. Files to touch
 
-Extend `src/lib/eduvest/dashboard-mock.ts`:
-- `ROLL_CALL_TODAY`: list of `{ workspaceId, level, stream, subject, teacher, startsAt, endsAt, status, submittedAt? }`.
-- `ATTENDANCE_RECORDS`: per-student per-class status with timestamps.
-- `GATE_EVENTS`: `{ studentId, gate, direction, timestamp }`.
-- `PARENT_ALERTS_TODAY`: derived list.
-- All datasets carry `workspace` so the existing isolation rule keeps working.
+- `src/lib/eduvest/dashboard-mock.ts` — extend Student type, add admission-rich fields, remarks array, subclass helpers.
+- `src/lib/eduvest/academic-levels.ts` — add `englishLevels(workspace)` / `frenchLevels(workspace)` split (keep combined list as fallback).
+- `src/lib/eduvest/admissions-mock.ts` — add full admission detail fields + `promoteToStudent()`.
+- `src/routes/dashboard.students.tsx` — new layout (section toggle, fees analytics, subclass column, 3-dot menu, profile dialog with tabs).
+- `src/routes/dashboard.attendance.tsx` — receive moved metrics, add remark editor per student, show responsible teacher.
+- `src/routes/dashboard.admissions.tsx` — richer review dialog with tabs + Accept-promotes-to-student.
+- New: `src/components/eduvest/SectionToggle.tsx` (English/French pill tabs, reused everywhere).
+- New: `src/components/eduvest/StudentProfileDialog.tsx` (shared by Students + Admissions review).
 
-## Files to edit / add
+## 10. Out of scope (confirm if you want these too)
 
-- edit `src/routes/dashboard.attendance.tsx` (drill-down, tabs, roll-call panel, actions, Sunday label, alerts)
-- edit `src/lib/eduvest/dashboard-mock.ts` (new datasets + types, teacher `assignedClasses`)
-- edit `src/components/dashboard/DashboardSidebar.tsx` only if the label needs adjusting (likely no change)
-- edit `src/routes/dashboard.teachers.tsx` (add "Assigned classes" column)
-- reuse `src/lib/eduvest/academic-levels.ts`, `print-pdf.ts`, `useWorkspace`
+- Real backend / Lovable Cloud wiring — staying on mock data unless you say otherwise.
+- Teacher scheduling UI (timetable already exists; only the assignment data model is extended here).
+- Bulk subclass rename / merge.
 
-## Out of scope
-
-- No backend, no realtime transport wiring (mock-only sync).
-- No redesign of dashboard chrome, sidebar, or other modules.
-- No build of the Attendance App itself.
-- No teacher-app login flow.
+Ready to switch to build mode?
