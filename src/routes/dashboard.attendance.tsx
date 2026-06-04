@@ -15,6 +15,9 @@ import {
   Send,
   BellOff,
   Radio,
+  ClipboardList,
+  MessageCircle,
+  ShieldCheck,
 } from "lucide-react";
 import { PageHeader, StatCard } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -27,8 +30,10 @@ import {
   WEEKLY_ATTENDANCE,
   type RollCall,
 } from "@/lib/eduvest/dashboard-mock";
-import { LEVELS_BY_WORKSPACE, classLabel } from "@/lib/eduvest/academic-levels";
+import { LEVELS_BY_WORKSPACE, classLabel, detectSection, type AcademicSection } from "@/lib/eduvest/academic-levels";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { SectionToggle } from "@/components/eduvest/SectionToggle";
+import { updateStudent, useStudents } from "@/lib/eduvest/students-store";
 
 export const Route = createFileRoute("/dashboard/attendance")({
   head: () => ({ meta: [{ title: "Attendance — EduVest" }, { name: "robots", content: "noindex" }] }),
