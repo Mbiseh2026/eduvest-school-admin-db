@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Plus, Search, Printer, Upload, ChevronRight, IdCard as IdCardIcon, Phone, Mail } from "lucide-react";
-import { PageHeader } from "@/components/dashboard/PageHeader";
+import { Plus, Search, Printer, Upload, MoreVertical, Wallet, CheckCircle2, AlertCircle, ClipboardList } from "lucide-react";
+import { PageHeader, StatCard } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,11 +19,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { STUDENTS, type Student } from "@/lib/eduvest/dashboard-mock";
+import { SectionToggle } from "@/components/eduvest/SectionToggle";
+import { StudentProfileDialog } from "@/components/eduvest/StudentProfileDialog";
+import {
+  addManualSubclass,
+  addStudents,
+  getSubclasses,
+  removeStudent,
+  useStudents,
+  useSubclasses,
+} from "@/lib/eduvest/students-store";
+import type { Student } from "@/lib/eduvest/dashboard-mock";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useOnboarding } from "@/hooks/use-onboarding";
-import { useLanguage } from "@/hooks/use-language";
-import { getLevels, getAllWorkspaces } from "@/lib/eduvest/academic-levels";
+import {
+  detectSection,
+  getAllWorkspaces,
+  getSectionLevels,
+  type AcademicSection,
+} from "@/lib/eduvest/academic-levels";
 import { printStudentList, type StudentSortKey } from "@/lib/eduvest/print-pdf";
 import { cn } from "@/lib/utils";
 
@@ -38,82 +52,109 @@ function statusBadge(reg: Student["registration"]) {
   return "bg-secondary text-muted-foreground";
 }
 
-function feesStatus(s: Student): { label: string; cls: string } {
-  const bal = s.totalFees - s.paidFees;
-  if (bal <= 0) return { label: "Paid", cls: "text-primary" };
-  if (s.paidFees > 0) return { label: "Partial", cls: "text-amber-600" };
-  return { label: "Outstanding", cls: "text-destructive" };
-}
-
 function StudentsPage() {
   const navigate = useNavigate();
   const { workspace } = useWorkspace();
-  const { lang } = useLanguage();
   const { state } = useOnboarding();
   const school = { name: state.profile.schoolName || "Greenfield School", primaryColor: state.branding.primaryColor };
 
+  const allStudents = useStudents();
   const isAll = workspace === "All School";
-  const lockedWs = isAll ? null : workspace;
-
   const [pickedWs, setPickedWs] = useState<string>("");
+  const effectiveWs = isAll ? pickedWs : workspace;
+
+  const [section, setSection] = useState<AcademicSection>("english");
   const [selectedLevel, setSelectedLevel] = useState<string>("");
+  const [selectedDivision, setSelectedDivision] = useState<string>("");
   const [q, setQ] = useState("");
+
   const [profile, setProfile] = useState<Student | null>(null);
   const [showImport, setShowImport] = useState(false);
-  const [students, setStudents] = useState<Student[]>(STUDENTS);
+  const [showAddSubclass, setShowAddSubclass] = useState(false);
 
-  const selectedWs = lockedWs ?? pickedWs;
-
-  // Base data already scoped to current workspace (unless All School).
+  // Scope students to current workspace
   const scoped = useMemo(
-    () => (lockedWs ? students.filter((s) => s.workspace === lockedWs) : students),
-    [students, lockedWs],
+    () => (effectiveWs ? allStudents.filter((s) => s.workspace === effectiveWs) : allStudents),
+    [allStudents, effectiveWs],
   );
 
-  const workspaces = useMemo(() => {
-    if (lockedWs) return [lockedWs];
-    const ws = new Set<string>();
-    scoped.forEach((s) => ws.add(s.workspace));
-    return Array.from(ws).filter((w) => getAllWorkspaces().includes(w) || w);
-  }, [scoped, lockedWs]);
+  // Section-aware level list
+  const sectionLevels = effectiveWs ? getSectionLevels(effectiveWs, section) : [];
+
+  // Subclasses for currently selected level
+  const subclasses = useSubclasses(effectiveWs, selectedLevel);
 
   const filtered = useMemo(() => {
     let rows = scoped;
-    if (selectedWs) rows = rows.filter((s) => s.workspace === selectedWs);
+    // Filter by current section if a workspace is picked
+    if (effectiveWs) {
+      rows = rows.filter((s) => detectSection(s.workspace, s.level) === section);
+    }
     if (selectedLevel) rows = rows.filter((s) => s.level === selectedLevel);
-    if (q)
+    if (selectedDivision) rows = rows.filter((s) => (s.division ?? "") === selectedDivision);
+    if (q) {
+      const qq = q.toLowerCase();
       rows = rows.filter(
         (s) =>
-          s.name.toLowerCase().includes(q.toLowerCase()) ||
-          s.studentId.toLowerCase().includes(q.toLowerCase()) ||
-          s.parent.toLowerCase().includes(q.toLowerCase()),
+          s.name.toLowerCase().includes(qq) ||
+          s.studentId.toLowerCase().includes(qq) ||
+          s.parent.toLowerCase().includes(qq),
       );
+    }
     return rows;
-  }, [scoped, selectedWs, selectedLevel, q]);
+  }, [scoped, effectiveWs, section, selectedLevel, selectedDivision, q]);
+
+  // Fees-focused analytics for the current filtered scope
+  const stats = useMemo(() => {
+    const total = filtered.length;
+    const completed = filtered.filter((s) => s.totalFees > 0 && s.paidFees >= s.totalFees).length;
+    const started = filtered.filter((s) => s.paidFees > 0 && s.paidFees < s.totalFees).length;
+    const notStarted = filtered.filter((s) => s.paidFees === 0).length;
+    const registered = filtered.filter((s) => s.registration === "Registered").length;
+    const pending = filtered.filter((s) => s.registration === "Pending").length;
+    return { total, completed, started, notStarted, registered, pending };
+  }, [filtered]);
 
   const doPrint = (sort: StudentSortKey) => {
-    const scope = selectedLevel ? `${selectedWs} · ${selectedLevel}` : selectedWs || workspace;
+    const scope = selectedLevel
+      ? `${effectiveWs} · ${selectedLevel}${selectedDivision ? " " + selectedDivision : ""}`
+      : effectiveWs || workspace;
     printStudentList(filtered, school, sort, scope);
+  };
+
+  const today = new Date().toLocaleDateString(undefined, { day: "2-digit", month: "long", year: "numeric" });
+
+  const exportCsv = () => {
+    const rows = [
+      ["Workspace", "Class", "Division", "Student ID", "Name", "Parent", "Phone", "Email", "Total Fees", "Paid Fees", "Registration"],
+      ...filtered.map((s) => [
+        s.workspace, s.level, s.division ?? "", s.studentId, s.name, s.parent, s.parentPhone, s.parentEmail, s.totalFees, s.paidFees, s.registration,
+      ]),
+    ];
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `students-${effectiveWs || "all"}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Students"
-        description={
-          selectedLevel
-            ? `${filtered.length} student${filtered.length === 1 ? "" : "s"} in ${selectedWs} · ${selectedLevel}`
-            : selectedWs
-              ? `${selectedWs} — pick a class to see students.`
-              : `Workspace: ${workspace}. Choose a workspace to start.`
-        }
+        description={`Master list of every enrolled student — synced to Attendance, Digital ID, Finance & Messages.`}
         actions={
           <>
+            <Button variant="outline" size="sm" onClick={exportCsv}>Export</Button>
+            <Button variant="outline" size="sm" onClick={() => setShowImport(true)}>
+              <Upload className="h-4 w-4" /> Import CSV
+            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Printer className="h-4 w-4" /> Print
-                </Button>
+                <Button variant="outline" size="sm"><Printer className="h-4 w-4" /> Print</Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Print student list</DropdownMenuLabel>
@@ -124,9 +165,6 @@ function StudentsPage() {
                 <DropdownMenuItem onClick={() => doPrint("class")}>By class</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="outline" size="sm" onClick={() => setShowImport(true)}>
-              <Upload className="h-4 w-4" /> Import CSV
-            </Button>
             <Button variant="hero" size="sm">
               <Plus className="h-4 w-4" /> Add student
             </Button>
@@ -134,156 +172,241 @@ function StudentsPage() {
         }
       />
 
-      {/* Breadcrumb */}
+      {/* Section toggle + date */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SectionToggle value={section} onChange={(s) => { setSection(s); setSelectedLevel(""); setSelectedDivision(""); }} />
+        <span className="text-sm text-muted-foreground">Date: {today}</span>
+      </div>
+
+      {/* Fees-focused analytics */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+        <StatCard label="Total Students" value={stats.total} icon={ClipboardList} tone="primary" />
+        <StatCard label="Fees Completed" value={stats.completed} icon={CheckCircle2} tone="navy" />
+        <StatCard label="Fees Started" value={stats.started} icon={Wallet} tone="warning" />
+        <StatCard label="Not Started" value={stats.notStarted} icon={AlertCircle} />
+        <StatCard label="Registered" value={stats.registered} />
+        <StatCard label="Pending Reg." value={stats.pending} />
+      </div>
+
+      {/* Workspace + Apply Filters row */}
       <div className="flex flex-wrap items-center gap-2 text-sm">
         {isAll ? (
-          <button onClick={() => { setPickedWs(""); setSelectedLevel(""); }} className="text-muted-foreground hover:text-foreground">All workspaces</button>
+          <select
+            value={pickedWs}
+            onChange={(e) => { setPickedWs(e.target.value); setSelectedLevel(""); setSelectedDivision(""); }}
+            className="h-9 rounded-xl border border-border bg-background px-3 text-sm"
+          >
+            <option value="">Workspace: All</option>
+            {getAllWorkspaces().map((w) => <option key={w}>{w}</option>)}
+          </select>
         ) : (
-          <span className="font-semibold text-foreground">{workspace}</span>
+          <span className="rounded-xl border border-border bg-secondary/40 px-3 py-1.5 text-xs font-semibold uppercase tracking-widest">
+            Workspace: {workspace}
+          </span>
         )}
-        {selectedWs && (<><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" /><button onClick={() => setSelectedLevel("")} className={cn("hover:text-foreground", selectedLevel ? "text-muted-foreground" : "font-semibold text-foreground")}>{selectedWs}</button></>)}
-        {selectedLevel && (<><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" /><span className="font-semibold">{selectedLevel}</span></>)}
+        <Button variant="outline" size="sm" onClick={() => { setSelectedLevel(""); setSelectedDivision(""); setQ(""); }}>Apply Filters</Button>
       </div>
 
-      {/* Filter chips */}
-      <div className="space-y-2">
-        {isAll && (
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-muted-foreground">Workspace:</span>
-            <button onClick={() => { setPickedWs(""); setSelectedLevel(""); }} className={cn("rounded-full border px-2.5 py-1", !pickedWs ? "border-primary text-primary" : "border-border text-muted-foreground")}>All</button>
-            {workspaces.map((w) => (
-              <button key={w} onClick={() => { setPickedWs(w); setSelectedLevel(""); }} className={cn("rounded-full border px-2.5 py-1", pickedWs === w ? "border-primary text-primary" : "border-border text-muted-foreground")}>{w}</button>
-            ))}
-          </div>
-        )}
-        {selectedWs && (
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-muted-foreground">Class:</span>
-            <button onClick={() => setSelectedLevel("")} className={cn("rounded-full border px-2.5 py-1", !selectedLevel ? "border-primary text-primary" : "border-border text-muted-foreground")}>All</button>
-            {getLevels(selectedWs, lang).map((lvl) => (
-              <button key={lvl} onClick={() => setSelectedLevel(lvl)} className={cn("rounded-full border px-2.5 py-1", selectedLevel === lvl ? "border-primary text-primary" : "border-border text-muted-foreground")}>{lvl}</button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* STUDENT TABLE — always visible */}
-      <div className="rounded-2xl border border-border bg-card">
-        <div className="flex items-center gap-2 border-b border-border p-3">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search students…"
-              className="h-9 w-full rounded-full border border-border bg-secondary/40 pl-9 pr-4 text-sm outline-none focus:bg-background focus:border-primary"
-            />
-          </div>
-          <span className="ml-auto text-xs text-muted-foreground">{filtered.length} student{filtered.length === 1 ? "" : "s"}</span>
+      {/* Class chips */}
+      {effectiveWs && (
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <button
+            onClick={() => { setSelectedLevel(""); setSelectedDivision(""); }}
+            className={cn("rounded-xl border px-3 py-1.5 font-medium", !selectedLevel ? "border-primary text-primary" : "border-border text-muted-foreground")}
+          >
+            Class · All
+          </button>
+          {sectionLevels.map((lvl) => (
+            <button
+              key={lvl}
+              onClick={() => { setSelectedLevel(lvl); setSelectedDivision(""); }}
+              className={cn("rounded-xl border px-3 py-1.5 font-medium", selectedLevel === lvl ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary")}
+            >
+              {lvl}
+            </button>
+          ))}
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="text-xs uppercase text-muted-foreground">
-              <tr className="border-b border-border">
-                <th className="px-4 py-3 text-left font-medium">Student</th>
-                <th className="px-4 py-3 text-left font-medium">ID</th>
-                <th className="px-4 py-3 text-left font-medium">Class</th>
-                <th className="px-4 py-3 text-left font-medium">Parent</th>
-                <th className="px-4 py-3 text-right font-medium">Total fees</th>
-                <th className="px-4 py-3 text-right font-medium">Balance</th>
-                <th className="px-4 py-3 text-left font-medium">Registration</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((s) => {
-                const bal = s.totalFees - s.paidFees;
-                return (
-                  <tr key={s.id} onClick={() => setProfile(s)} className="cursor-pointer border-b border-border last:border-0 hover:bg-secondary/40">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <img src={s.photo} alt={s.name} className="h-9 w-9 rounded-full border border-border" />
-                        <span className="font-medium">{s.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 font-mono text-xs">{s.studentId}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{s.workspace} · {s.className || s.level}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{s.parent}</td>
-                    <td className="px-4 py-3 text-right">XAF {s.totalFees.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-right font-semibold">{bal > 0 ? `XAF ${bal.toLocaleString()}` : "—"}</td>
-                    <td className="px-4 py-3">
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${statusBadge(s.registration)}`}>{s.registration}</span>
-                    </td>
-                  </tr>
-                );
-              })}
-              {filtered.length === 0 && (
-                <tr><td colSpan={7} className="px-4 py-12 text-center text-sm text-muted-foreground">No students match the current filters.</td></tr>
+      )}
+
+      {/* Two-column layout: subclass column + student table */}
+      <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
+        {/* Subclass column */}
+        <aside className="rounded-2xl border border-border bg-card p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Subclass</p>
+            {selectedLevel && (
+              <Button variant="ghost" size="sm" onClick={() => setShowAddSubclass(true)}>
+                <Plus className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+          {!selectedLevel ? (
+            <p className="text-xs text-muted-foreground">Select a class to see its subclasses.</p>
+          ) : (
+            <div className="space-y-1.5">
+              <button
+                onClick={() => setSelectedDivision("")}
+                className={cn("w-full rounded-lg border px-3 py-1.5 text-left text-sm", !selectedDivision ? "border-primary bg-primary-soft text-primary" : "border-border")}
+              >
+                All
+              </button>
+              {subclasses.map((d) => (
+                <button
+                  key={d || "_none"}
+                  onClick={() => setSelectedDivision(d)}
+                  className={cn("w-full rounded-lg border px-3 py-1.5 text-left text-sm", selectedDivision === d ? "border-primary bg-primary-soft text-primary" : "border-border hover:border-primary")}
+                >
+                  {selectedLevel}{d ? ` ${d}` : ""}
+                </button>
+              ))}
+              {subclasses.length === 0 && (
+                <p className="text-xs text-muted-foreground">No subclasses yet. Click + to add one.</p>
               )}
-            </tbody>
-          </table>
+            </div>
+          )}
+        </aside>
+
+        {/* Student table */}
+        <div className="rounded-2xl border border-border bg-card">
+          <div className="flex items-center gap-2 border-b border-border p-3">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search students…"
+                className="h-9 w-full rounded-full border border-border bg-secondary/40 pl-9 pr-4 text-sm outline-none focus:bg-background focus:border-primary"
+              />
+            </div>
+            <span className="ml-auto text-xs text-muted-foreground">{filtered.length} student{filtered.length === 1 ? "" : "s"}</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-xs uppercase text-muted-foreground">
+                <tr className="border-b border-border">
+                  <th className="px-4 py-3 text-left font-medium">Student</th>
+                  <th className="px-4 py-3 text-left font-medium">ID</th>
+                  <th className="px-4 py-3 text-left font-medium">Class</th>
+                  <th className="px-4 py-3 text-left font-medium">Parent</th>
+                  <th className="px-4 py-3 text-right font-medium">Total fees</th>
+                  <th className="px-4 py-3 text-right font-medium">Balance</th>
+                  <th className="px-4 py-3 text-left font-medium">Registration</th>
+                  <th className="px-4 py-3 text-right font-medium"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((s) => {
+                  const bal = s.totalFees - s.paidFees;
+                  return (
+                    <tr key={s.id} className="border-b border-border last:border-0 hover:bg-secondary/40">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <img src={s.photo} alt={s.name} className="h-9 w-9 rounded-full border border-border" />
+                          <span className="font-medium">{s.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs">{s.studentId}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{s.workspace} · {s.className || s.level}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{s.parent}</td>
+                      <td className="px-4 py-3 text-right">XAF {s.totalFees.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right font-semibold">{bal > 0 ? `XAF ${bal.toLocaleString()}` : "—"}</td>
+                      <td className="px-4 py-3">
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${statusBadge(s.registration)}`}>{s.registration}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm"><MoreVertical className="h-4 w-4" /></Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setProfile(s)}>View student details</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate({ to: "/dashboard/messages" })}>Message parent</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate({ to: "/dashboard/digital-id" })}>Print ID card</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive" onClick={() => { if (confirm(`Remove ${s.name}?`)) removeStudent(s.id); }}>
+                              Remove
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {filtered.length === 0 && (
+                  <tr><td colSpan={8} className="px-4 py-12 text-center text-sm text-muted-foreground">No students match the current filters.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      {profile && <StudentProfileDialog student={profile} onClose={() => setProfile(null)} onMessage={() => navigate({ to: "/dashboard/messages" })} />}
-      {showImport && <ImportCsvDialog onClose={() => setShowImport(false)} onImport={(s) => setStudents((prev) => [...s, ...prev])} />}
+      {profile && (
+        <StudentProfileDialog
+          student={profile}
+          onClose={() => setProfile(null)}
+          onMessage={() => { setProfile(null); navigate({ to: "/dashboard/messages" }); }}
+        />
+      )}
+      {showImport && (
+        <ImportCsvDialog
+          defaultWorkspace={effectiveWs || "Primary"}
+          defaultLevel={selectedLevel}
+          defaultDivision={selectedDivision}
+          onClose={() => setShowImport(false)}
+          onImport={(s) => addStudents(s)}
+        />
+      )}
+      {showAddSubclass && selectedLevel && effectiveWs && (
+        <AddSubclassDialog
+          workspace={effectiveWs}
+          level={selectedLevel}
+          existing={subclasses}
+          onClose={() => setShowAddSubclass(false)}
+          onAdd={(d) => { addManualSubclass(effectiveWs, selectedLevel, d); setSelectedDivision(d); setShowAddSubclass(false); }}
+        />
+      )}
     </div>
   );
 }
 
-function StudentProfileDialog({ student, onClose, onMessage }: { student: Student; onClose: () => void; onMessage: () => void }) {
-  const fees = feesStatus(student);
-  const bal = student.totalFees - student.paidFees;
+function AddSubclassDialog({
+  workspace, level, existing, onClose, onAdd,
+}: { workspace: string; level: string; existing: string[]; onClose: () => void; onAdd: (d: string) => void }) {
+  const [letter, setLetter] = useState("");
+  const available = ["A", "B", "C", "D", "E", "F", "G", "H"].filter((l) => !existing.includes(l));
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>Student profile</DialogTitle>
-          <DialogDescription>{student.studentId}</DialogDescription>
+          <DialogTitle>Add subclass</DialogTitle>
+          <DialogDescription>{workspace} · {level}. Pick a letter for the new stream.</DialogDescription>
         </DialogHeader>
-        <div className="grid gap-6 sm:grid-cols-[auto_1fr]">
-          <img src={student.photo} alt={student.name} className="h-28 w-28 rounded-2xl border border-border" />
-          <div className="space-y-2">
-            <h3 className="text-xl font-bold">{student.name}</h3>
-            <p className="text-sm text-muted-foreground">{student.workspace} · {student.level}</p>
-            <div className="flex flex-wrap gap-2 pt-1">
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${statusBadge(student.registration)}`}>{student.registration}</span>
-              <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Digital ID: {student.digitalId}</span>
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${fees.cls === "text-primary" ? "bg-primary-soft text-primary" : fees.cls === "text-amber-600" ? "bg-amber-100 text-amber-700" : "bg-destructive/10 text-destructive"}`}>Fees: {fees.label}</span>
-            </div>
-          </div>
-        </div>
-        <div className="mt-2 grid gap-4 sm:grid-cols-2">
-          <Field label="Parent / Guardian" value={student.guardian || student.parent} />
-          <Field label="Attendance" value={`${student.attendance}%`} />
-          <Field label="Phone" value={student.parentPhone} icon={Phone} />
-          <Field label="Email" value={student.parentEmail} icon={Mail} />
-          <Field label="Total fees" value={`XAF ${student.totalFees.toLocaleString()}`} />
-          <Field label="Paid" value={`XAF ${student.paidFees.toLocaleString()}`} />
-          <Field label="Balance" value={bal > 0 ? `XAF ${bal.toLocaleString()}` : "Settled"} />
-          <Field label="Digital ID" value={student.digitalId} icon={IdCardIcon} />
+        <div className="flex flex-wrap gap-2">
+          {available.map((l) => (
+            <button
+              key={l}
+              onClick={() => setLetter(l)}
+              className={cn("h-10 w-10 rounded-xl border text-sm font-bold", letter === l ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary")}
+            >
+              {l}
+            </button>
+          ))}
         </div>
         <DialogFooter>
-          <Button variant="outline" size="sm" onClick={onClose}>Close</Button>
-          <Button variant="hero" size="sm" onClick={onMessage}>Message parent</Button>
+          <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
+          <Button variant="hero" size="sm" disabled={!letter} onClick={() => onAdd(letter)}>
+            Create {level} {letter}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
-function Field({ label, value, icon: Icon }: { label: string; value: string; icon?: React.ComponentType<{ className?: string }> }) {
-  return (
-    <div className="rounded-xl border border-border bg-secondary/30 px-3 py-2">
-      <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{label}</p>
-      <p className="mt-0.5 flex items-center gap-1.5 text-sm font-medium">
-        {Icon && <Icon className="h-3.5 w-3.5 text-muted-foreground" />}
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function ImportCsvDialog({ onClose, onImport }: { onClose: () => void; onImport: (s: Student[]) => void }) {
+function ImportCsvDialog({
+  defaultWorkspace, defaultLevel, defaultDivision, onClose, onImport,
+}: { defaultWorkspace: string; defaultLevel: string; defaultDivision: string; onClose: () => void; onImport: (s: Student[]) => void }) {
   const [text, setText] = useState("");
   const cols = "workspace,class,division,studentNumber,name,parent,guardian,parentPhone,parentEmail,totalFees,paidFees,registration";
 
@@ -292,14 +415,17 @@ function ImportCsvDialog({ onClose, onImport }: { onClose: () => void; onImport:
     const rows = lines.slice(lines[0]?.toLowerCase().startsWith("workspace") ? 1 : 0);
     const parsed: Student[] = rows.map((line, i) => {
       const [workspace, level, division, studentId, name, parent, guardian, parentPhone, parentEmail, totalFees, paidFees, registration] = line.split(",").map((c) => c.trim());
-      const div = division || "";
-      const lvl = level || "Class 1";
+      const ws = workspace || defaultWorkspace;
+      const lvl = level || defaultLevel || "Class 1";
+      const div = division || defaultDivision || "";
+      // Auto-register the subclass so it appears in the sidebar
+      if (div) addManualSubclass(ws, lvl, div);
       return {
         id: `imp-${Date.now()}-${i}`,
         name: name || "Unnamed",
         photo: `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(name || "S")}`,
         studentId: studentId || `IMP-${i}`,
-        workspace: workspace || "Primary",
+        workspace: ws,
         level: lvl,
         division: div || undefined,
         className: div ? `${lvl} ${div}` : lvl,
@@ -327,7 +453,7 @@ function ImportCsvDialog({ onClose, onImport }: { onClose: () => void; onImport:
           <DialogDescription>
             Columns: {cols}
             <br />
-            <span className="text-[11px]">Leave <code>division</code> empty for schools without streams. Examples below mix English and French classes.</span>
+            <span className="text-[11px]">Leave <code>division</code> empty for schools without streams. New subclasses are added automatically.</span>
           </DialogDescription>
         </DialogHeader>
         <textarea
