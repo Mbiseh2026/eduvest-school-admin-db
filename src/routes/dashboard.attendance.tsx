@@ -48,6 +48,10 @@ function AttendancePage() {
   const [pickedLevel, setPickedLevel] = useState<string | null>(null);
   const [pickedDivision, setPickedDivision] = useState<string | null>(null);
   const [tab, setTab] = useState<"class" | "gate">("class");
+  const [section, setSection] = useState<AcademicSection>("english");
+  const [remarkText, setRemarkText] = useState("");
+  const [remarkStudentId, setRemarkStudentId] = useState<string | null>(null);
+  const allStudents = useStudents();
 
   // Reset internal state if workspace changes
   const effectiveWs = isAll ? pickedWs : workspace;
