@@ -126,13 +126,32 @@ function AttendancePage() {
         }
       />
 
-      {/* Top stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Present today" value={ATTENDANCE_TODAY.present} hint={`of ${ATTENDANCE_TODAY.totalStudents}`} icon={UserCheck} tone="primary" />
-        <StatCard label="Late" value={ATTENDANCE_TODAY.late} icon={Clock} tone="warning" />
-        <StatCard label="Absent" value={ATTENDANCE_TODAY.absent} hint="Auto-alert queued" icon={UserX} />
-        <StatCard label="Roll calls" value={`${completed}/${scopedRollCalls.length}`} hint={`Teachers submitted ${teachersWhoSubmitted}/${totalTeachers}`} icon={CalendarCheck} tone="navy" />
+      {/* Section toggle */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SectionToggle value={section} onChange={setSection} />
+        <span className="text-sm text-muted-foreground">
+          Date: {new Date().toLocaleDateString(undefined, { day: "2-digit", month: "long", year: "numeric" })}
+        </span>
       </div>
+
+      {/* Today metrics (moved from Students) */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+        <StatCard label="Total Students" value={ATTENDANCE_TODAY.totalStudents} icon={ClipboardList} tone="primary" />
+        <StatCard label="Present Today" value={ATTENDANCE_TODAY.present} icon={UserCheck} tone="navy" />
+        <StatCard label="Absent Today" value={ATTENDANCE_TODAY.absent} icon={UserX} />
+        <StatCard label="Late Today" value={ATTENDANCE_TODAY.late} icon={Clock} tone="warning" />
+        <StatCard label="Excused Today" value={STUDENT_ATTENDANCE.filter((a) => a.status === "Excused").length} icon={ShieldCheck} />
+        <StatCard label="Remarks Today" value={allStudents.reduce((n, s) => n + ((s.remarks ?? []).filter((r) => r.date === new Date().toISOString().slice(0, 10)).length), 0)} icon={MessageCircle} />
+      </div>
+
+      {/* Roll call summary */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
+        <StatCard label="Roll calls" value={`${completed}/${scopedRollCalls.length}`} hint={`Teachers submitted ${teachersWhoSubmitted}/${totalTeachers}`} icon={CalendarCheck} tone="navy" />
+        <StatCard label="Section" value={section === "english" ? "English" : "French"} hint="Switch with the toggle above to filter classes" />
+      </div>
+
+      {/* Filter rollcalls by current section helper note */}
+      {/* Note: rollcalls list below already shows all; section toggle drives class drill-down chips. */}
 
       {/* Breadcrumb / drill-down chips */}
       <div className="flex flex-wrap items-center gap-2 text-sm">
