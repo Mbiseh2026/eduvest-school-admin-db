@@ -21,6 +21,9 @@ export type Admission = {
   address?: string;
   religion?: string;
   previousSchool?: string;
+  reasonForChange?: string;
+  whatsappSameAsPhone?: boolean;
+  whatsappPhone?: string;
   bloodGroup?: string;
   allergies?: string;
   conditions?: string;
@@ -127,6 +130,9 @@ export function admissionToStudent(a: Admission): Student {
     address: a.address,
     religion: a.religion,
     previousSchool: a.previousSchool,
+    reasonForChange: a.reasonForChange,
+    whatsappSameAsPhone: a.whatsappSameAsPhone,
+    whatsappPhone: a.whatsappPhone,
     bloodGroup: a.bloodGroup,
     allergies: a.allergies,
     conditions: a.conditions,

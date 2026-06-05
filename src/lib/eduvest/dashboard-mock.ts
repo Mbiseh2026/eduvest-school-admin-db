@@ -23,6 +23,9 @@ export type Student = {
   guardian?: string;
   parentPhone: string;
   parentEmail: string;
+  whatsappSameAsPhone?: boolean;
+  whatsappPhone?: string;
+  reasonForChange?: string;
   attendance: number;
   status: "Active" | "Archived";
   registration: "Registered" | "Pending" | "Withdrawn";
