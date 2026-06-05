@@ -21,6 +21,9 @@ export type Admission = {
   address?: string;
   religion?: string;
   previousSchool?: string;
+  reasonForChange?: string;
+  whatsappSameAsPhone?: boolean;
+  whatsappPhone?: string;
   bloodGroup?: string;
   allergies?: string;
   conditions?: string;
