@@ -183,11 +183,21 @@ export function DashboardSidebar({
                   {hasChildren && expanded && (
                     <ul className="mt-1 space-y-0.5 border-l border-border pl-4 ml-5">
                       {visibleChildren!.map((child) => {
-                        const childActive = isActive(child.to);
+                        const [childPath, childQuery] = child.to.split("?");
+                        const childSearch = childQuery
+                          ? Object.fromEntries(new URLSearchParams(childQuery))
+                          : undefined;
+                        const childActive = childSearch
+                          ? pathname === childPath &&
+                            Object.entries(childSearch).every(
+                              ([k, v]) => new URLSearchParams(typeof window !== "undefined" ? window.location.search : "").get(k) === v,
+                            )
+                          : isActive(child.to);
                         return (
                           <li key={child.to}>
                             <Link
-                              to={child.to}
+                              to={childPath}
+                              search={childSearch as never}
                               onClick={onClose}
                               className={cn(
                                 "flex items-center rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
