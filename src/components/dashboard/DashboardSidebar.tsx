@@ -35,7 +35,16 @@ type NavItem = {
 
 export const NAV_ITEMS: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true, permission: "dashboard.view" },
-  { to: "/dashboard/attendance", label: "Attendance", icon: CalendarCheck, permission: "attendance.view" },
+  {
+    to: "/dashboard/attendance",
+    label: "Attendance",
+    icon: CalendarCheck,
+    permission: "attendance.view",
+    children: [
+      { to: "/dashboard/attendance?view=class", label: "Class Roll Call" },
+      { to: "/dashboard/attendance?view=gate", label: "Gate Attendance" },
+    ],
+  },
   { to: "/dashboard/messages", label: "Messages", icon: MessageSquare, permission: "messages.view" },
   {
     to: "/dashboard/finance",
