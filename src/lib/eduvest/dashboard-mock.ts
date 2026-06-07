@@ -314,15 +314,15 @@ export type ParentAlert = {
   level: string;
   division?: string;
   reason: "Late" | "Absent" | "No gate entry";
-  channels: Array<"Email" | "WhatsApp" | "Dashboard">;
+  channels: Array<"Email" | "WhatsApp" | "Push" | "Direct">;
   status: "Pending" | "Sent" | "Snoozed";
 };
 
 export const PARENT_ALERTS_TODAY: ParentAlert[] = [
-  { id: "al1", studentName: "Daniel Mbah", parentName: "Paul Mbah", workspace: "Secondary", level: "Form 5", division: "B", reason: "Absent", channels: ["Email", "Dashboard"], status: "Pending" },
-  { id: "al2", studentName: "Grace Bello", parentName: "Yemi Bello", workspace: "Secondary", level: "Form 4", division: "A", reason: "Late", channels: ["Email", "WhatsApp"], status: "Pending" },
-  { id: "al3", studentName: "Brian Tabi", parentName: "Joseph Tabi", workspace: "Primary", level: "Class 6", division: "B", reason: "Late", channels: ["Dashboard"], status: "Sent" },
-  { id: "al4", studentName: "Hassan Diallo", parentName: "Aminata Diallo", workspace: "University", level: "Level 2", reason: "No gate entry", channels: ["Email"], status: "Pending" },
+  { id: "al1", studentName: "Daniel Mbah", parentName: "Paul Mbah", workspace: "Secondary", level: "Form 5", division: "B", reason: "Absent", channels: ["Email", "Push"], status: "Pending" },
+  { id: "al2", studentName: "Grace Bello", parentName: "Yemi Bello", workspace: "Secondary", level: "Form 4", division: "A", reason: "Late", channels: ["Email", "WhatsApp", "Push"], status: "Pending" },
+  { id: "al3", studentName: "Brian Tabi", parentName: "Joseph Tabi", workspace: "Primary", level: "Class 6", division: "B", reason: "Late", channels: ["Push", "Direct"], status: "Sent" },
+  { id: "al4", studentName: "Hassan Diallo", parentName: "Aminata Diallo", workspace: "University", level: "Level 2", reason: "No gate entry", channels: ["Email", "WhatsApp"], status: "Pending" },
 ];
 
 export const WEEKLY_ATTENDANCE = [

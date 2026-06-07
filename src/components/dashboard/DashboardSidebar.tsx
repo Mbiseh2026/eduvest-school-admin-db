@@ -35,7 +35,16 @@ type NavItem = {
 
 export const NAV_ITEMS: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true, permission: "dashboard.view" },
-  { to: "/dashboard/attendance", label: "Attendance", icon: CalendarCheck, permission: "attendance.view" },
+  {
+    to: "/dashboard/attendance",
+    label: "Attendance",
+    icon: CalendarCheck,
+    permission: "attendance.view",
+    children: [
+      { to: "/dashboard/attendance?view=class", label: "Class Roll Call" },
+      { to: "/dashboard/attendance?view=gate", label: "Gate Attendance" },
+    ],
+  },
   { to: "/dashboard/messages", label: "Messages", icon: MessageSquare, permission: "messages.view" },
   {
     to: "/dashboard/finance",
@@ -174,11 +183,21 @@ export function DashboardSidebar({
                   {hasChildren && expanded && (
                     <ul className="mt-1 space-y-0.5 border-l border-border pl-4 ml-5">
                       {visibleChildren!.map((child) => {
-                        const childActive = isActive(child.to);
+                        const [childPath, childQuery] = child.to.split("?");
+                        const childSearch = childQuery
+                          ? Object.fromEntries(new URLSearchParams(childQuery))
+                          : undefined;
+                        const childActive = childSearch
+                          ? pathname === childPath &&
+                            Object.entries(childSearch).every(
+                              ([k, v]) => new URLSearchParams(typeof window !== "undefined" ? window.location.search : "").get(k) === v,
+                            )
+                          : isActive(child.to);
                         return (
                           <li key={child.to}>
                             <Link
-                              to={child.to}
+                              to={childPath}
+                              search={childSearch as never}
                               onClick={onClose}
                               className={cn(
                                 "flex items-center rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
