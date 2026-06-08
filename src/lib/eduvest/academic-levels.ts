@@ -5,12 +5,12 @@
 import type { Language } from "@/hooks/use-language";
 
 export type WorkspaceName =
-  | "Pre-Nursery"
+  | "Prenursery"
   | "Nursery"
   | "Primary"
   | "Secondary"
-  | "Higher Education"
-  | "Higher Institute"
+  | "High School"
+  | "High Institute"
   | "University"
   | string;
 
@@ -18,25 +18,26 @@ export type AcademicSection = "english" | "french";
 
 // English section per workspace
 export const ENGLISH_LEVELS: Record<string, string[]> = {
-  "Pre-Nursery": ["Crèche", "Pre-Nursery"],
+  Prenursery: ["Crèche", "Pre-Nursery"],
   Nursery: ["Nursery 1", "Nursery 2"],
   Primary: ["Class 1", "Class 2", "Class 3", "Class 4", "Class 5", "Class 6"],
   Secondary: ["Form 1", "Form 2", "Form 3", "Form 4", "Form 5"],
-  "Higher Education": ["Lower Sixth", "Upper Sixth"],
-  "Higher Institute": ["Level 1", "Level 2", "Level 3", "HND 1", "HND 2"],
+  "High School": ["Lower Sixth", "Upper Sixth"],
+  "High Institute": ["Level 1", "Level 2", "Level 3", "HND 1", "HND 2"],
   University: ["Level 1", "Level 2", "Level 3", "Level 4", "Masters 1", "Masters 2", "PhD"],
 };
 
 // French section per workspace
 export const FRENCH_LEVELS: Record<string, string[]> = {
-  "Pre-Nursery": ["Pré-maternelle"],
+  Prenursery: ["Pré-maternelle"],
   Nursery: ["Petite Section", "Moyenne Section", "Grande Section"],
   Primary: ["SIL", "CP", "CE1", "CE2", "CM1", "CM2"],
   Secondary: ["6ème", "5ème", "4ème", "3ème", "2nde"],
-  "Higher Education": ["Première", "Terminale"],
-  "Higher Institute": ["BTS 1", "BTS 2"],
+  "High School": ["Première", "Terminale"],
+  "High Institute": ["BTS 1", "BTS 2"],
   University: ["Licence 1", "Licence 2", "Licence 3", "Master 1", "Master 2", "Doctorat"],
 };
+
 
 // Combined list (kept for components that don't care about section).
 export const LEVELS_BY_WORKSPACE: Record<string, string[]> = Object.fromEntries(
