@@ -269,18 +269,70 @@ function AttendancePage() {
         </>
       ) : (
         <>
+          {/* Attendance Mode banner */}
+          <div className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4 ${gateMode === "late" ? "border-primary/30 bg-primary-soft/50" : "border-emerald-200 bg-emerald-50"}`}>
+            <div className="flex items-start gap-3">
+              <CalendarCheck className={`mt-0.5 h-5 w-5 ${gateMode === "late" ? "text-primary" : "text-emerald-700"}`} />
+              <div>
+                <p className="text-sm font-semibold">
+                  Attendance Mode:{" "}
+                  <span className={gateMode === "late" ? "text-primary" : "text-emerald-700"}>
+                    {gateMode === "late" ? "Late Arrival Monitoring Only" : "Full Gate Attendance"}
+                  </span>
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {gateMode === "late"
+                    ? `Only students who arrive after the allowed time (${gateSettings.lateAfter}) are scanned at the gate.`
+                    : "Every student is scanned at the gate on entry and exit."}
+                </p>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setGateMode(gateMode === "late" ? "full" : "late")}>
+              <RefreshCw className="h-4 w-4" /> Change Mode
+            </Button>
+          </div>
+
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <DoorOpen className="h-3.5 w-3.5" /> Gate Attendance · today
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            <StatCard label="Expected" value={expected} icon={UsersIcon} tone="primary" />
-            <StatCard label="Entries (IN)" value={gateIn} icon={DoorOpen} tone="navy" />
-            <StatCard label="Exits (OUT)" value={gateOut} icon={DoorClosed} />
-            <StatCard label="Currently in school" value={inSchool} icon={ShieldCheck} tone="navy" />
-            <StatCard label="No entry yet" value={missingEntry} icon={UserX} tone="warning" />
-          </div>
+
+          {gateMode === "late" ? (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              <StatCard label="Total Students" value={expected} hint="All enrolled students" icon={UsersIcon} tone="primary" />
+              <StatCard label="Late Students (Scanned)" value={gateIn} hint={`Arrived after ${gateSettings.lateAfter}`} icon={Clock} tone="warning" />
+              <StatCard label="Early Exits (Today)" value={gateOut} hint="Left before closing time" icon={LogOut} />
+              <StatCard label="Teacher Marked Absent" value={ATTENDANCE_TODAY.absent} hint="Marked absent in class" icon={UserX} />
+              <StatCard
+                label="Attendance Rate (Est.)"
+                value={`${Math.round(((expected - ATTENDANCE_TODAY.absent) / Math.max(expected, 1)) * 1000) / 10}%`}
+                hint="Based on teacher roll call"
+                icon={ShieldCheck}
+                tone="navy"
+              />
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              <StatCard label="Expected" value={expected} icon={UsersIcon} tone="primary" />
+              <StatCard label="Entries (IN)" value={gateIn} icon={DoorOpen} tone="navy" />
+              <StatCard label="Exits (OUT)" value={gateOut} icon={DoorClosed} />
+              <StatCard label="Currently in school" value={inSchool} icon={ShieldCheck} tone="navy" />
+              <StatCard label="No entry yet" value={missingEntry} icon={UserX} tone="warning" />
+            </div>
+          )}
+
+          {gateMode === "late" && (
+            <div className="flex items-start gap-2 rounded-xl border border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
+              <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <p>
+                Only students arriving after the configured late threshold are scanned at the gate.
+                Absence records are provided through teacher roll call. Not all students are scanned —
+                schools can switch to Full Gate Attendance in Settings to scan every entry and exit.
+              </p>
+            </div>
+          )}
         </>
       )}
+
 
       {/* Breadcrumb */}
       <div className="flex flex-wrap items-center gap-2 text-sm">
