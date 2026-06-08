@@ -23,7 +23,11 @@ import {
   Users as UsersIcon,
   Bell,
   Info,
+  LogOut,
+  Settings as SettingsIcon,
+  RefreshCw,
 } from "lucide-react";
+
 import { PageHeader, StatCard } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
