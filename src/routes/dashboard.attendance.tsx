@@ -79,6 +79,27 @@ function AttendancePage() {
     if (typeof window !== "undefined") localStorage.setItem("eduvest:reportDay", reportDay);
   }, [reportDay]);
 
+  // Gate attendance mode — "late" (default) only scans late arrivals; "full" scans everyone.
+  type GateMode = "late" | "full";
+  const [gateMode, setGateMode] = useState<GateMode>(() => {
+    if (typeof window === "undefined") return "late";
+    return (localStorage.getItem("eduvest:gateMode") as GateMode) || "late";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem("eduvest:gateMode", gateMode);
+  }, [gateMode]);
+
+  // Gate settings (mock — wire to real settings later)
+  const gateSettings = {
+    startTime: "07:30 AM",
+    gracePeriod: 10,
+    lateAfter: "07:40 AM",
+    closingTime: "02:30 PM",
+    earlyExitBefore: "01:30 PM",
+    timezone: "Africa/Douala (GMT+1)",
+  };
+
+
   const setView = (v: AttendanceView) =>
     navigate({ to: "/dashboard/attendance", search: { view: v } });
 
