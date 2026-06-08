@@ -23,7 +23,11 @@ import {
   Users as UsersIcon,
   Bell,
   Info,
+  LogOut,
+  Settings as SettingsIcon,
+  RefreshCw,
 } from "lucide-react";
+
 import { PageHeader, StatCard } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
@@ -74,6 +78,27 @@ function AttendancePage() {
   useEffect(() => {
     if (typeof window !== "undefined") localStorage.setItem("eduvest:reportDay", reportDay);
   }, [reportDay]);
+
+  // Gate attendance mode — "late" (default) only scans late arrivals; "full" scans everyone.
+  type GateMode = "late" | "full";
+  const [gateMode, setGateMode] = useState<GateMode>(() => {
+    if (typeof window === "undefined") return "late";
+    return (localStorage.getItem("eduvest:gateMode") as GateMode) || "late";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem("eduvest:gateMode", gateMode);
+  }, [gateMode]);
+
+  // Gate settings (mock — wire to real settings later)
+  const gateSettings = {
+    startTime: "07:30 AM",
+    gracePeriod: 10,
+    lateAfter: "07:40 AM",
+    closingTime: "02:30 PM",
+    earlyExitBefore: "01:30 PM",
+    timezone: "Africa/Douala (GMT+1)",
+  };
+
 
   const setView = (v: AttendanceView) =>
     navigate({ to: "/dashboard/attendance", search: { view: v } });
@@ -244,18 +269,70 @@ function AttendancePage() {
         </>
       ) : (
         <>
+          {/* Attendance Mode banner */}
+          <div className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4 ${gateMode === "late" ? "border-primary/30 bg-primary-soft/50" : "border-emerald-200 bg-emerald-50"}`}>
+            <div className="flex items-start gap-3">
+              <CalendarCheck className={`mt-0.5 h-5 w-5 ${gateMode === "late" ? "text-primary" : "text-emerald-700"}`} />
+              <div>
+                <p className="text-sm font-semibold">
+                  Attendance Mode:{" "}
+                  <span className={gateMode === "late" ? "text-primary" : "text-emerald-700"}>
+                    {gateMode === "late" ? "Late Arrival Monitoring Only" : "Full Gate Attendance"}
+                  </span>
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {gateMode === "late"
+                    ? `Only students who arrive after the allowed time (${gateSettings.lateAfter}) are scanned at the gate.`
+                    : "Every student is scanned at the gate on entry and exit."}
+                </p>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setGateMode(gateMode === "late" ? "full" : "late")}>
+              <RefreshCw className="h-4 w-4" /> Change Mode
+            </Button>
+          </div>
+
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <DoorOpen className="h-3.5 w-3.5" /> Gate Attendance · today
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            <StatCard label="Expected" value={expected} icon={UsersIcon} tone="primary" />
-            <StatCard label="Entries (IN)" value={gateIn} icon={DoorOpen} tone="navy" />
-            <StatCard label="Exits (OUT)" value={gateOut} icon={DoorClosed} />
-            <StatCard label="Currently in school" value={inSchool} icon={ShieldCheck} tone="navy" />
-            <StatCard label="No entry yet" value={missingEntry} icon={UserX} tone="warning" />
-          </div>
+
+          {gateMode === "late" ? (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              <StatCard label="Total Students" value={expected} hint="All enrolled students" icon={UsersIcon} tone="primary" />
+              <StatCard label="Late Students (Scanned)" value={gateIn} hint={`Arrived after ${gateSettings.lateAfter}`} icon={Clock} tone="warning" />
+              <StatCard label="Early Exits (Today)" value={gateOut} hint="Left before closing time" icon={LogOut} />
+              <StatCard label="Teacher Marked Absent" value={ATTENDANCE_TODAY.absent} hint="Marked absent in class" icon={UserX} />
+              <StatCard
+                label="Attendance Rate (Est.)"
+                value={`${Math.round(((expected - ATTENDANCE_TODAY.absent) / Math.max(expected, 1)) * 1000) / 10}%`}
+                hint="Based on teacher roll call"
+                icon={ShieldCheck}
+                tone="navy"
+              />
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              <StatCard label="Expected" value={expected} icon={UsersIcon} tone="primary" />
+              <StatCard label="Entries (IN)" value={gateIn} icon={DoorOpen} tone="navy" />
+              <StatCard label="Exits (OUT)" value={gateOut} icon={DoorClosed} />
+              <StatCard label="Currently in school" value={inSchool} icon={ShieldCheck} tone="navy" />
+              <StatCard label="No entry yet" value={missingEntry} icon={UserX} tone="warning" />
+            </div>
+          )}
+
+          {gateMode === "late" && (
+            <div className="flex items-start gap-2 rounded-xl border border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
+              <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <p>
+                Only students arriving after the configured late threshold are scanned at the gate.
+                Absence records are provided through teacher roll call. Not all students are scanned —
+                schools can switch to Full Gate Attendance in Settings to scan every entry and exit.
+              </p>
+            </div>
+          )}
         </>
       )}
+
 
       {/* Breadcrumb */}
       <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -464,47 +541,131 @@ function AttendancePage() {
 
       {/* === GATE VIEW: full gate log === */}
       {view === "gate" && (
-        <div className="rounded-2xl border border-border bg-card p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-semibold">Gate log — today</h2>
-              <p className="text-xs text-muted-foreground">All scans from every campus gate. Filter by workspace using the breadcrumb above.</p>
+        <div className="grid gap-5 lg:grid-cols-3">
+          <div className="rounded-2xl border border-border bg-card p-5 lg:col-span-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-semibold">
+                  {gateMode === "late" ? "Late Arrival Log — Today" : "Gate log — today"}
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  {gateMode === "late"
+                    ? `Students who arrived after the allowed time (After ${gateSettings.lateAfter})`
+                    : "All scans from every campus gate. Filter by workspace using the breadcrumb above."}
+                </p>
+              </div>
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-3 py-1 text-xs font-medium text-primary">
+                <Radio className="h-3 w-3" /> Live
+              </span>
             </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-3 py-1 text-xs font-medium text-primary">
-              <Radio className="h-3 w-3" /> Live
-            </span>
-          </div>
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-xs uppercase text-muted-foreground">
-                <tr className="border-b border-border">
-                  <th className="px-3 py-2 text-left font-medium">Student</th>
-                  <th className="px-3 py-2 text-left font-medium">Class</th>
-                  <th className="px-3 py-2 text-left font-medium">Gate</th>
-                  <th className="px-3 py-2 text-left font-medium">Direction</th>
-                  <th className="px-3 py-2 text-left font-medium">Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                {scopedGate.map((g) => (
-                  <tr key={g.id} className="border-b border-border last:border-0 hover:bg-secondary/40">
-                    <td className="px-3 py-3 font-medium">{g.studentName}</td>
-                    <td className="px-3 py-3 text-muted-foreground">{g.workspace} · {classLabel(g.level, g.division)}</td>
-                    <td className="px-3 py-3">{g.gate}</td>
-                    <td className="px-3 py-3">
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${g.direction === "IN" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-700"}`}>{g.direction}</span>
-                    </td>
-                    <td className="px-3 py-3 text-muted-foreground">{g.time}</td>
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-xs uppercase text-muted-foreground">
+                  <tr className="border-b border-border">
+                    <th className="px-3 py-2 text-left font-medium">Student</th>
+                    <th className="px-3 py-2 text-left font-medium">Class</th>
+                    <th className="px-3 py-2 text-left font-medium">Gate</th>
+                    {gateMode === "late" ? (
+                      <>
+                        <th className="px-3 py-2 text-left font-medium">Arrival Time</th>
+                        <th className="px-3 py-2 text-left font-medium">Minutes Late</th>
+                      </>
+                    ) : (
+                      <>
+                        <th className="px-3 py-2 text-left font-medium">Direction</th>
+                        <th className="px-3 py-2 text-left font-medium">Time</th>
+                      </>
+                    )}
                   </tr>
-                ))}
-                {scopedGate.length === 0 && (
-                  <tr><td colSpan={5} className="px-3 py-8 text-center text-xs text-muted-foreground">No gate scans yet.</td></tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {(gateMode === "late" ? scopedGate.filter((g) => g.direction === "IN") : scopedGate).map((g) => {
+                    // Compute minutes late vs configured late threshold (07:40)
+                    const [lateH, lateM] = [7, 40];
+                    const parsed = /^(\d{1,2}):(\d{2})/.exec(g.time);
+                    let mins = 0;
+                    if (parsed) {
+                      const h = parseInt(parsed[1], 10);
+                      const m = parseInt(parsed[2], 10);
+                      mins = Math.max(0, h * 60 + m - (lateH * 60 + lateM));
+                    }
+                    return (
+                      <tr key={g.id} className="border-b border-border last:border-0 hover:bg-secondary/40">
+                        <td className="px-3 py-3 font-medium">{g.studentName}</td>
+                        <td className="px-3 py-3 text-muted-foreground">{classLabel(g.level, g.division)}</td>
+                        <td className="px-3 py-3">{g.gate}</td>
+                        {gateMode === "late" ? (
+                          <>
+                            <td className="px-3 py-3 text-muted-foreground">{g.time}</td>
+                            <td className="px-3 py-3">
+                              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                                {mins} min
+                              </span>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="px-3 py-3">
+                              <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${g.direction === "IN" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-700"}`}>{g.direction}</span>
+                            </td>
+                            <td className="px-3 py-3 text-muted-foreground">{g.time}</td>
+                          </>
+                        )}
+                      </tr>
+                    );
+                  })}
+                  {scopedGate.length === 0 && (
+                    <tr><td colSpan={5} className="px-3 py-8 text-center text-xs text-muted-foreground">No gate scans yet.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Attendance Settings panel */}
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-semibold">Attendance Settings</h2>
+              <Button variant="outline" size="sm"><SettingsIcon className="h-3.5 w-3.5" /> Manage</Button>
+            </div>
+            <dl className="mt-4 divide-y divide-border text-sm">
+              <div className="flex items-center justify-between py-2.5">
+                <dt className="text-muted-foreground">Attendance Mode</dt>
+                <dd>
+                  <button
+                    type="button"
+                    onClick={() => setGateMode(gateMode === "late" ? "full" : "late")}
+                    className={`rounded-full px-3 py-0.5 text-xs font-semibold ${gateMode === "late" ? "bg-primary-soft text-primary" : "bg-emerald-100 text-emerald-700"}`}
+                  >
+                    {gateMode === "late" ? "Late Arrival Monitoring Only" : "Full Gate Attendance"}
+                  </button>
+                </dd>
+              </div>
+              <div className="flex items-center justify-between py-2.5">
+                <dt className="text-muted-foreground">School Start Time</dt>
+                <dd className="font-medium">{gateSettings.startTime}</dd>
+              </div>
+              <div className="flex items-center justify-between py-2.5">
+                <dt className="text-muted-foreground">Late After <span className="text-xs">(Grace {gateSettings.gracePeriod} min)</span></dt>
+                <dd className="font-medium">{gateSettings.lateAfter}</dd>
+              </div>
+              <div className="flex items-center justify-between py-2.5">
+                <dt className="text-muted-foreground">School Closing Time</dt>
+                <dd className="font-medium">{gateSettings.closingTime}</dd>
+              </div>
+              <div className="flex items-center justify-between py-2.5">
+                <dt className="text-muted-foreground">Early Exit Before</dt>
+                <dd className="font-medium">{gateSettings.earlyExitBefore}</dd>
+              </div>
+              <div className="flex items-center justify-between py-2.5">
+                <dt className="text-muted-foreground">Timezone</dt>
+                <dd className="font-medium">{gateSettings.timezone}</dd>
+              </div>
+            </dl>
           </div>
         </div>
       )}
+
 
       {/* Roll Call Monitoring (class view only) */}
       {view === "class" && (
